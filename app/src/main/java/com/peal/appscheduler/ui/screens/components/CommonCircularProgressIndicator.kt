@@ -1,4 +1,4 @@
-package com.peal.appscheduler.ui.common
+package com.peal.appscheduler.ui.screens.components
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.wrapContentSize

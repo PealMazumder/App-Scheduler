@@ -8,7 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.peal.appscheduler.domain.model.DeviceAppInfo
-import com.peal.appscheduler.ui.common.CommonCircularProgressIndicator
+import com.peal.appscheduler.ui.screens.components.CommonCircularProgressIndicator
 
 
 /**
@@ -46,7 +46,7 @@ fun InstalledAppsList(
             InstalledAppItem(
                 app,
                 onNavigate = {
-                    onNavigationEvent(DeviceAppsNavigationEvent.OnNavigateScheduler)
+                    onNavigationEvent(DeviceAppsNavigationEvent.OnNavigateScheduler(it))
                 }
             )
         }
