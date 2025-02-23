@@ -9,6 +9,8 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.peal.appscheduler.ui.screens.home.HomeScreen
+import com.peal.appscheduler.ui.screens.home.HomeViewModel
 import com.peal.appscheduler.ui.screens.installedApps.InstalledAppsListScreen
 import com.peal.appscheduler.ui.screens.installedApps.InstalledAppsViewModel
 
@@ -24,8 +26,22 @@ fun NavGraph(
 ) {
     NavHost(
         navController = navController,
-        startDestination = Screens.InstalledAppsListScreen
+        startDestination = Screens.HomeScreen
     ) {
+
+        composable<Screens.HomeScreen> {
+            val homeViewModel: HomeViewModel = hiltViewModel()
+            val homeScreenState by homeViewModel.homeState.collectAsStateWithLifecycle()
+            val navigation = HomeScreenNavigation(navController)
+            HomeScreen(
+                modifier,
+                homeScreenState,
+                onNavigationEvent = {
+                    navigation.onNavigation(it)
+                }
+            )
+        }
+
         composable<Screens.InstalledAppsListScreen> {
             val installedAppsViewModel: InstalledAppsViewModel = hiltViewModel()
             val installedAppsScreenState by installedAppsViewModel.installedAppsScreenState.collectAsStateWithLifecycle()
