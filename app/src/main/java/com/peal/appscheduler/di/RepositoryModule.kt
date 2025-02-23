@@ -1,7 +1,9 @@
 package com.peal.appscheduler.di
 
 import com.peal.appscheduler.data.repositoryImpl.DeviceAppsRepositoryImpl
+import com.peal.appscheduler.data.repositoryImpl.ScheduleRepositoryImpl
 import com.peal.appscheduler.domain.repository.DeviceAppsRepository
+import com.peal.appscheduler.domain.repository.ScheduleRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -19,4 +21,8 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindDeviceAppsRepository(deviceAppsRepositoryImpl: DeviceAppsRepositoryImpl): DeviceAppsRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindScheduleRepository(scheduleRepositoryImpl: ScheduleRepositoryImpl): ScheduleRepository
 }

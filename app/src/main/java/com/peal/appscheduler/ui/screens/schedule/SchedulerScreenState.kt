@@ -14,4 +14,5 @@ data class SchedulerScreenState(
     val appInfo: DeviceAppInfo? = null,
     val selectedDate: String? = null,
     val selectedTime: String? = null,
+    val message: String? = null,
 )

@@ -45,10 +45,7 @@ import java.time.LocalTime
 fun SchedulerScreen(
     modifier: Modifier = Modifier,
     state: SchedulerScreenState,
-    onCancel: () -> Unit = {},
-    onSave: () -> Unit = {},
-    onDateSelected: (LocalDate) -> Unit = {},
-    onTimeSelected: (LocalTime) -> Unit = {}
+    onIntent: (SchedulerScreenIntent) -> Unit = {},
 ) {
     var showDatePicker by rememberSaveable { mutableStateOf(false) }
     var showTimePicker by rememberSaveable { mutableStateOf(false) }
@@ -105,14 +102,21 @@ fun SchedulerScreen(
             )
         }
 
-        ActionButtons(onCancel, onSave)
+        ActionButtons(
+            onSave = {
+                onIntent.invoke(SchedulerScreenIntent.ScheduleApp)
+            },
+            onCancel = {
+
+            }
+        )
     }
 
     if (showDatePicker) {
         DatePickerDialog(
             onDismissRequest = { showDatePicker = false },
             onDateSelected = {
-                onDateSelected(it)
+                onIntent.invoke(SchedulerScreenIntent.OnDateSelected(it))
                 showDatePicker = false
             }
         )
@@ -122,7 +126,7 @@ fun SchedulerScreen(
         TimePickerDialog(
             onDismissRequest = { showTimePicker = false },
             onTimeSelected = {
-                onTimeSelected(it)
+                onIntent.invoke(SchedulerScreenIntent.OnTimeSelected(it))
                 showTimePicker = false
             }
         )
@@ -145,8 +149,8 @@ private fun AppSection(appInfo: DeviceAppInfo?) {
 
 @Composable
 private fun ActionButtons(
+    onSave: () -> Unit,
     onCancel: () -> Unit,
-    onSave: () -> Unit
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -189,10 +193,6 @@ fun SchedulerScreenPreview() {
             selectedDate = LocalDate.now().toString(),
             selectedTime = LocalTime.now().toString()
         ),
-        onCancel = {},
-        onSave = {},
-        onDateSelected = {},
-        onTimeSelected = {}
     )
 }
 

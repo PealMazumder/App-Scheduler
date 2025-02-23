@@ -73,7 +73,8 @@ fun NavGraph(
             val schedulerScreenState by schedulerViewModel.schedulerScreenState.collectAsStateWithLifecycle()
             SchedulerScreen(
                 modifier,
-                schedulerScreenState
+                schedulerScreenState,
+                onIntent = { schedulerViewModel.handleIntent(it) }
             )
         }
     }

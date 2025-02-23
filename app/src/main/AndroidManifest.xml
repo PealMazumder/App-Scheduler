@@ -2,6 +2,13 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE"/>
+
+
+
     <application
         android:name=".AppSchedulerApp"
         android:allowBackup="true"
@@ -24,6 +31,12 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <receiver android:name=".ui.AppSchedulerReceiver" android:exported="true"
+            android:permission="android.permission.RECEIVE_BOOT_COMPLETED" />
+        <service android:name=".ui.AppLaunchService"
+            android:foregroundServiceType="specialUse"
+            android:exported="false"/>
+
     </application>
 
     <queries>
