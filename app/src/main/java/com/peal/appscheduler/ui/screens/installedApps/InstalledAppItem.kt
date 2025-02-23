@@ -23,12 +23,17 @@ import com.peal.appscheduler.ui.screens.components.AppIcon
  */
 
 @Composable
-fun InstalledAppItem(app: InstalledAppInfo) {
+fun InstalledAppItem(
+    app: InstalledAppInfo,
+    onNavigate: (InstalledAppInfo) -> Unit = {}
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(10.dp)
-            .clickable {  },
+            .clickable {
+                onNavigate.invoke(app)
+            },
         verticalAlignment = Alignment.CenterVertically
     ) {
         AppIcon(

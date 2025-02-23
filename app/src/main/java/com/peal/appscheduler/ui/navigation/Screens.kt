@@ -14,5 +14,8 @@ sealed class Screens {
 
     @Serializable
     data object InstalledAppsListScreen : Screens()
+
+    @Serializable
+    data object AppSchedulerScreen : Screens()
 }
 

@@ -18,26 +18,37 @@ import com.peal.appscheduler.ui.common.CommonCircularProgressIndicator
 @Composable
 fun InstalledAppsListScreen(
     modifier: Modifier = Modifier,
-    installedAppsScreenState: InstalledAppsScreenState
+    installedAppsScreenState: InstalledAppsScreenState,
+    onNavigationEvent: (DeviceAppsNavigationEvent) -> Unit,
 ) {
     when {
         installedAppsScreenState.isLoading -> CommonCircularProgressIndicator(modifier = modifier)
         installedAppsScreenState.installedApps.isNotEmpty() -> InstalledAppsList(
+            modifier = modifier,
             installedApps = installedAppsScreenState.installedApps,
-            modifier
+            onNavigationEvent = onNavigationEvent
         )
     }
 }
 
 @Composable
-fun InstalledAppsList(installedApps: List<InstalledAppInfo>, modifier: Modifier) {
+fun InstalledAppsList(
+    modifier: Modifier,
+    installedApps: List<InstalledAppInfo>,
+    onNavigationEvent: (DeviceAppsNavigationEvent) -> Unit
+) {
     LazyColumn(
         modifier = modifier
             .fillMaxSize()
             .padding(16.dp)
     ) {
         items(installedApps) { app ->
-            InstalledAppItem(app)
+            InstalledAppItem(
+                app,
+                onNavigate = {
+                    onNavigationEvent(DeviceAppsNavigationEvent.OnNavigateScheduler)
+                }
+            )
         }
     }
 }

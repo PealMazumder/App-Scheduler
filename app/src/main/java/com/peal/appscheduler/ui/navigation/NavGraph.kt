@@ -13,6 +13,8 @@ import com.peal.appscheduler.ui.screens.home.HomeScreen
 import com.peal.appscheduler.ui.screens.home.HomeViewModel
 import com.peal.appscheduler.ui.screens.installedApps.InstalledAppsListScreen
 import com.peal.appscheduler.ui.screens.installedApps.InstalledAppsViewModel
+import com.peal.appscheduler.ui.screens.schedule.SchedulerScreen
+import com.peal.appscheduler.ui.screens.schedule.SchedulerViewModel
 
 
 /**
@@ -45,9 +47,22 @@ fun NavGraph(
         composable<Screens.InstalledAppsListScreen> {
             val installedAppsViewModel: InstalledAppsViewModel = hiltViewModel()
             val installedAppsScreenState by installedAppsViewModel.installedAppsScreenState.collectAsStateWithLifecycle()
+            val navigation = DeviceAppsScreenNavigation(navController)
             InstalledAppsListScreen(
                 modifier,
-                installedAppsScreenState
+                installedAppsScreenState,
+                onNavigationEvent = {
+                    navigation.onNavigation(it)
+                }
+            )
+        }
+
+        composable<Screens.AppSchedulerScreen> {
+            val schedulerViewModel: SchedulerViewModel = hiltViewModel()
+            val schedulerScreenState by schedulerViewModel.schedulerScreenState.collectAsStateWithLifecycle()
+            SchedulerScreen(
+                modifier,
+                schedulerScreenState
             )
         }
     }
