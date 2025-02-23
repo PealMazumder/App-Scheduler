@@ -29,10 +29,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.peal.appscheduler.R
-import com.peal.appscheduler.domain.model.InstalledAppInfo
+import com.peal.appscheduler.domain.model.DeviceAppInfo
 import com.peal.appscheduler.ui.screens.components.DatePickerDialog
 import com.peal.appscheduler.ui.screens.components.TimePickerDialog
-import com.peal.appscheduler.ui.screens.installedApps.InstalledAppItem
+import com.peal.appscheduler.ui.screens.deviceApps.InstalledAppItem
 import java.time.LocalDate
 import java.time.LocalTime
 
@@ -131,7 +131,7 @@ fun SchedulerScreen(
 
 
 @Composable
-private fun AppSection(appInfo: InstalledAppInfo?) {
+private fun AppSection(appInfo: DeviceAppInfo?) {
     appInfo?.let {
         Text(
             text = stringResource(R.string.app),
@@ -181,7 +181,7 @@ private fun ActionButtons(
 fun SchedulerScreenPreview() {
     SchedulerScreen(
         state = SchedulerScreenState(
-            appInfo = InstalledAppInfo(
+            appInfo = DeviceAppInfo(
                 name = "Sample App",
                 packageName = "com.example.app",
                 icon = null

@@ -1,6 +1,4 @@
-package com.peal.appscheduler.ui.screens.installedApps
-
-import com.peal.appscheduler.ui.screens.home.HomeNavigationEvent
+package com.peal.appscheduler.ui.screens.deviceApps
 
 
 /**

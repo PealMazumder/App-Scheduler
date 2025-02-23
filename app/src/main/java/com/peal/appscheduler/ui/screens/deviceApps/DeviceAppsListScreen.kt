@@ -1,4 +1,4 @@
-package com.peal.appscheduler.ui.screens.installedApps
+package com.peal.appscheduler.ui.screens.deviceApps
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -7,7 +7,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.peal.appscheduler.domain.model.InstalledAppInfo
+import com.peal.appscheduler.domain.model.DeviceAppInfo
 import com.peal.appscheduler.ui.common.CommonCircularProgressIndicator
 
 
@@ -16,16 +16,16 @@ import com.peal.appscheduler.ui.common.CommonCircularProgressIndicator
  */
 
 @Composable
-fun InstalledAppsListScreen(
+fun DeviceAppsListScreen(
     modifier: Modifier = Modifier,
-    installedAppsScreenState: InstalledAppsScreenState,
+    deviceAppsScreenState: DeviceAppsScreenState,
     onNavigationEvent: (DeviceAppsNavigationEvent) -> Unit,
 ) {
     when {
-        installedAppsScreenState.isLoading -> CommonCircularProgressIndicator(modifier = modifier)
-        installedAppsScreenState.installedApps.isNotEmpty() -> InstalledAppsList(
+        deviceAppsScreenState.isLoading -> CommonCircularProgressIndicator(modifier = modifier)
+        deviceAppsScreenState.deviceApps.isNotEmpty() -> InstalledAppsList(
             modifier = modifier,
-            installedApps = installedAppsScreenState.installedApps,
+            installedApps = deviceAppsScreenState.deviceApps,
             onNavigationEvent = onNavigationEvent
         )
     }
@@ -34,7 +34,7 @@ fun InstalledAppsListScreen(
 @Composable
 fun InstalledAppsList(
     modifier: Modifier,
-    installedApps: List<InstalledAppInfo>,
+    installedApps: List<DeviceAppInfo>,
     onNavigationEvent: (DeviceAppsNavigationEvent) -> Unit
 ) {
     LazyColumn(

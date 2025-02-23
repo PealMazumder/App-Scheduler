@@ -1,8 +1,8 @@
-package com.peal.appscheduler.ui.screens.installedApps
+package com.peal.appscheduler.ui.screens.deviceApps
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.peal.appscheduler.domain.usecase.GetInstalledAppsUseCase
+import com.peal.appscheduler.domain.usecase.GetDeviceAppsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -18,12 +18,12 @@ import javax.inject.Inject
  */
 
 @HiltViewModel
-class InstalledAppsViewModel @Inject constructor(
-    private val getInstalledAppsUseCase: GetInstalledAppsUseCase
+class DeviceAppsViewModel @Inject constructor(
+    private val getInstalledAppsUseCase: GetDeviceAppsUseCase
 ) : ViewModel() {
 
-    private val _installedAppsScreenState = MutableStateFlow(InstalledAppsScreenState())
-    val installedAppsScreenState: StateFlow<InstalledAppsScreenState> = _installedAppsScreenState
+    private val _deviceAppsScreenState = MutableStateFlow(DeviceAppsScreenState())
+    val deviceAppsScreenState: StateFlow<DeviceAppsScreenState> = _deviceAppsScreenState
 
     init {
         loadInstalledApps()
@@ -33,14 +33,14 @@ class InstalledAppsViewModel @Inject constructor(
         viewModelScope.launch {
             getInstalledAppsUseCase()
                 .onStart {
-                    _installedAppsScreenState.update { it.copy(isLoading = true) }
+                    _deviceAppsScreenState.update { it.copy(isLoading = true) }
                 }
                 .catch { e -> e.printStackTrace() }
-                .collect { installedApps ->
-                    _installedAppsScreenState.update {
+                .collect { deviceApps ->
+                    _deviceAppsScreenState.update {
                         it.copy(
                             isLoading = false,
-                            installedApps = installedApps
+                            deviceApps = deviceApps
                         )
                     }
                 }

@@ -1,4 +1,4 @@
-package com.peal.appscheduler.ui.screens.installedApps
+package com.peal.appscheduler.ui.screens.deviceApps
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -15,7 +15,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.peal.appscheduler.domain.model.InstalledAppInfo
+import com.peal.appscheduler.domain.model.DeviceAppInfo
 import com.peal.appscheduler.ui.screens.components.AppIcon
 
 /**
@@ -24,8 +24,8 @@ import com.peal.appscheduler.ui.screens.components.AppIcon
 
 @Composable
 fun InstalledAppItem(
-    app: InstalledAppInfo,
-    onNavigate: (InstalledAppInfo) -> Unit = {}
+    app: DeviceAppInfo,
+    onNavigate: (DeviceAppInfo) -> Unit = {}
 ) {
     Row(
         modifier = Modifier

@@ -11,8 +11,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.peal.appscheduler.ui.screens.home.HomeScreen
 import com.peal.appscheduler.ui.screens.home.HomeViewModel
-import com.peal.appscheduler.ui.screens.installedApps.InstalledAppsListScreen
-import com.peal.appscheduler.ui.screens.installedApps.InstalledAppsViewModel
+import com.peal.appscheduler.ui.screens.deviceApps.DeviceAppsListScreen
+import com.peal.appscheduler.ui.screens.deviceApps.DeviceAppsViewModel
 import com.peal.appscheduler.ui.screens.schedule.SchedulerScreen
 import com.peal.appscheduler.ui.screens.schedule.SchedulerViewModel
 
@@ -44,13 +44,13 @@ fun NavGraph(
             )
         }
 
-        composable<Screens.InstalledAppsListScreen> {
-            val installedAppsViewModel: InstalledAppsViewModel = hiltViewModel()
-            val installedAppsScreenState by installedAppsViewModel.installedAppsScreenState.collectAsStateWithLifecycle()
+        composable<Screens.DeviceAppsListScreen> {
+            val deviceAppsViewModel: DeviceAppsViewModel = hiltViewModel()
+            val deviceAppsScreenState by deviceAppsViewModel.deviceAppsScreenState.collectAsStateWithLifecycle()
             val navigation = DeviceAppsScreenNavigation(navController)
-            InstalledAppsListScreen(
+            DeviceAppsListScreen(
                 modifier,
-                installedAppsScreenState,
+                deviceAppsScreenState,
                 onNavigationEvent = {
                     navigation.onNavigation(it)
                 }

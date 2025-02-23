@@ -13,7 +13,7 @@ sealed class Screens {
     data object HomeScreen : Screens()
 
     @Serializable
-    data object InstalledAppsListScreen : Screens()
+    data object DeviceAppsListScreen : Screens()
 
     @Serializable
     data object AppSchedulerScreen : Screens()

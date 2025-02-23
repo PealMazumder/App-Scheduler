@@ -1,7 +1,7 @@
 package com.peal.appscheduler.ui.screens.schedule
 
 import androidx.compose.runtime.Immutable
-import com.peal.appscheduler.domain.model.InstalledAppInfo
+import com.peal.appscheduler.domain.model.DeviceAppInfo
 
 
 /**
@@ -11,7 +11,7 @@ import com.peal.appscheduler.domain.model.InstalledAppInfo
 @Immutable
 data class SchedulerScreenState(
     val isLoading: Boolean = false,
-    val appInfo: InstalledAppInfo? = null,
+    val appInfo: DeviceAppInfo? = null,
     val selectedDate: String? = null,
     val selectedTime: String? = null,
 )

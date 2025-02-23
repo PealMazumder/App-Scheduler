@@ -1,7 +1,7 @@
 package com.peal.appscheduler.ui.navigation
 
 import androidx.navigation.NavHostController
-import com.peal.appscheduler.ui.screens.installedApps.DeviceAppsNavigationEvent
+import com.peal.appscheduler.ui.screens.deviceApps.DeviceAppsNavigationEvent
 
 
 /**

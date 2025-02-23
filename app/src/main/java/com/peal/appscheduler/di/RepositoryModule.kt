@@ -1,7 +1,7 @@
 package com.peal.appscheduler.di
 
-import com.peal.appscheduler.data.repositoryImpl.InstalledAppsRepositoryImpl
-import com.peal.appscheduler.domain.repository.InstalledAppsRepository
+import com.peal.appscheduler.data.repositoryImpl.DeviceAppsRepositoryImpl
+import com.peal.appscheduler.domain.repository.DeviceAppsRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -18,5 +18,5 @@ import javax.inject.Singleton
 abstract class RepositoryModule {
     @Binds
     @Singleton
-    abstract fun bindInstalledAppsRepository(installedAppsRepositoryImpl: InstalledAppsRepositoryImpl): InstalledAppsRepository
+    abstract fun bindDeviceAppsRepository(deviceAppsRepositoryImpl: DeviceAppsRepositoryImpl): DeviceAppsRepository
 }

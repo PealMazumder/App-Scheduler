@@ -12,7 +12,7 @@ class HomeScreenNavigation(private val navController: NavHostController) {
     fun onNavigation(homeNavigationEvent: HomeNavigationEvent) {
         when (homeNavigationEvent) {
             is HomeNavigationEvent.OnNavigateInstalledApps -> {
-                navController.navigate(Screens.InstalledAppsListScreen)
+                navController.navigate(Screens.DeviceAppsListScreen)
             }
         }
     }
