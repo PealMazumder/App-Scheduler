@@ -7,13 +7,16 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.peal.appscheduler.R
 import com.peal.appscheduler.ui.model.ScheduleAppInfoUi
 import com.peal.appscheduler.ui.screens.components.AppIcon
 
@@ -30,8 +33,7 @@ fun ScheduledAppItem(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp)
-            .clickable(onClick = onClick),
+            .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         app.icon?.let {
@@ -64,6 +66,15 @@ fun ScheduledAppItem(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
+
+        Spacer(modifier = Modifier.width(10.dp))
+
+        Icon(
+            painter = painterResource(id = R.drawable.edit_square),
+            contentDescription = "Edit",
+            tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.clickable { onClick() }
+        )
     }
 }
 

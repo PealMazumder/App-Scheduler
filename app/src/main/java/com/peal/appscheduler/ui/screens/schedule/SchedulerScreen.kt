@@ -108,7 +108,8 @@ fun SchedulerScreen(
             },
             onCancel = {
 
-            }
+            },
+            state
         )
     }
 
@@ -151,22 +152,26 @@ private fun AppSection(appInfo: DeviceAppInfo?) {
 private fun ActionButtons(
     onSave: () -> Unit,
     onCancel: () -> Unit,
+    state: SchedulerScreenState,
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Button(
-            onClick = onCancel,
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.secondary
-            )
-        ) {
-            Text(stringResource(R.string.cancel))
-        }
+        if (state.isEdit) {
+            Button(
+                onClick = onCancel,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.secondary
+                )
+            ) {
+                Text(stringResource(R.string.cancel))
+            }
 
-        Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(16.dp))
+
+        }
 
         Button(
             onClick = onSave,

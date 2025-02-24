@@ -14,6 +14,10 @@ class HomeScreenNavigation(private val navController: NavHostController) {
             is HomeNavigationEvent.OnNavigateInstalledApps -> {
                 navController.navigate(Screens.DeviceAppsListScreen)
             }
+
+            is HomeNavigationEvent.OnNavigateScheduledApps -> {
+                navController.navigate(Screens.AppSchedulerScreen)
+            }
         }
     }
 }

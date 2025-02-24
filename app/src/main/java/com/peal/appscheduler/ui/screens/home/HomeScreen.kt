@@ -47,7 +47,9 @@ fun HomeScreen(
             ) { schedule ->
                 ScheduledAppItem(
                     app = schedule,
-                    onClick = {}
+                    onClick = {
+                        onNavigationEvent(HomeNavigationEvent.OnNavigateScheduledApps(schedule))
+                    }
                 )
             }
         }

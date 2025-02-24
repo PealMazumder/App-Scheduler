@@ -3,8 +3,6 @@ package com.peal.appscheduler.ui.screens.deviceApps
 import androidx.lifecycle.ViewModel
 import com.peal.appscheduler.domain.model.DeviceAppInfo
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import javax.inject.Inject
 
 
@@ -14,10 +12,20 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SharedDeviceAppViewModel @Inject constructor() : ViewModel() {
-    private val _selectedAppInfo = MutableStateFlow<DeviceAppInfo?>(null)
-    val selectedAppInfo: StateFlow<DeviceAppInfo?> = _selectedAppInfo
+    var appInfo: DeviceAppInfo? = null
+
+    var scheduleTime: String? = null
+
 
     fun setSelectedAppInfo(appInfo: DeviceAppInfo) {
-        _selectedAppInfo.value = appInfo
+        this.appInfo = appInfo
+    }
+
+    fun setScheduledDateAndTime(time: String) {
+        scheduleTime = time
+    }
+
+    fun clearScheduleTimeData() {
+        scheduleTime = null
     }
 }

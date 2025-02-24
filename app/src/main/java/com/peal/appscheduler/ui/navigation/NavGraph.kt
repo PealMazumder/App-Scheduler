@@ -1,7 +1,6 @@
 package com.peal.appscheduler.ui.navigation
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -10,12 +9,14 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.peal.appscheduler.ui.screens.home.HomeScreen
-import com.peal.appscheduler.ui.screens.home.HomeViewModel
+import com.peal.appscheduler.domain.mappers.toDeviceAppInfo
 import com.peal.appscheduler.ui.screens.deviceApps.DeviceAppsListScreen
 import com.peal.appscheduler.ui.screens.deviceApps.DeviceAppsNavigationEvent
 import com.peal.appscheduler.ui.screens.deviceApps.DeviceAppsViewModel
 import com.peal.appscheduler.ui.screens.deviceApps.SharedDeviceAppViewModel
+import com.peal.appscheduler.ui.screens.home.HomeNavigationEvent
+import com.peal.appscheduler.ui.screens.home.HomeScreen
+import com.peal.appscheduler.ui.screens.home.HomeViewModel
 import com.peal.appscheduler.ui.screens.schedule.SchedulerScreen
 import com.peal.appscheduler.ui.screens.schedule.SchedulerViewModel
 
@@ -43,8 +44,12 @@ fun NavGraph(
             HomeScreen(
                 modifier,
                 homeScreenState,
-                onNavigationEvent = {
-                    navigation.onNavigation(it)
+                onNavigationEvent = { event ->
+                    if (event is HomeNavigationEvent.OnNavigateScheduledApps) {
+                        sharedViewModel.setSelectedAppInfo(event.appInfo.toDeviceAppInfo())
+                        sharedViewModel.setScheduledDateAndTime(event.appInfo.time)
+                    }
+                    navigation.onNavigation(event)
                 }
             )
         }
@@ -59,16 +64,21 @@ fun NavGraph(
                 onNavigationEvent = { event ->
                     if (event is DeviceAppsNavigationEvent.OnNavigateScheduler) {
                         sharedViewModel.setSelectedAppInfo(event.data)
-                        navigation.onNavigation(event)
                     }
+                    navigation.onNavigation(event)
                 }
             )
         }
 
         composable<Screens.AppSchedulerScreen> {
             val schedulerViewModel: SchedulerViewModel = hiltViewModel()
-            LaunchedEffect(sharedViewModel.selectedAppInfo) {
-                schedulerViewModel.updateAppInfo(sharedViewModel.selectedAppInfo.value)
+
+            schedulerViewModel.updateAppInfo(sharedViewModel.appInfo)
+            sharedViewModel.scheduleTime?.let { it1 ->
+                schedulerViewModel.updateScheduleTime(it1)
+                schedulerViewModel.setEditState(true)
+                sharedViewModel.clearScheduleTimeData()
+
             }
             val schedulerScreenState by schedulerViewModel.schedulerScreenState.collectAsStateWithLifecycle()
             SchedulerScreen(

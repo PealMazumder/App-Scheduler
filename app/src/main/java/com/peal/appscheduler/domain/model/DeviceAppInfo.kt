@@ -8,7 +8,8 @@ import android.graphics.drawable.Drawable
  */
 
 data class DeviceAppInfo(
+    val id: Long = 0,
     val name: String,
     val packageName: String,
-    val icon: Drawable?
+    val icon: Drawable?,
 )

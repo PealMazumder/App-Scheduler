@@ -15,4 +15,5 @@ data class SchedulerScreenState(
     val selectedDate: String? = null,
     val selectedTime: String? = null,
     val message: String? = null,
+    val isEdit: Boolean = false
 )

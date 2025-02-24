@@ -8,6 +8,7 @@ import com.peal.appscheduler.domain.model.DeviceAppInfo
 import com.peal.appscheduler.domain.usecase.ScheduleAppUseCase
 import com.peal.appscheduler.domain.utils.ScheduleResult
 import com.peal.appscheduler.domain.utils.toFormattedDate
+import com.peal.appscheduler.domain.utils.toFormattedPattern
 import com.peal.appscheduler.domain.utils.toFormattedTime
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -39,6 +40,19 @@ class SchedulerViewModel @Inject constructor(
         _schedulerScreenState.update { it.copy(appInfo = appInfo) }
     }
 
+    fun updateScheduleTime(time: String) {
+        _schedulerScreenState.update {
+            it.copy(
+                selectedDate = time.toFormattedPattern(),
+                selectedTime = time.toFormattedPattern(toPattern = "hh:mm a")
+            )
+        }
+    }
+
+    fun setEditState(editState: Boolean) {
+        _schedulerScreenState.update { it.copy(isEdit = editState) }
+    }
+
     fun handleIntent(intent: SchedulerScreenIntent) {
         when (intent) {
             is SchedulerScreenIntent.ScheduleApp -> {
@@ -51,7 +65,7 @@ class SchedulerViewModel @Inject constructor(
                             it.copy(isLoading = true)
                         }
                         val scheduledTime =
-                            date.atTime(time).atZone(ZoneId.systemDefault()).toInstant()
+                            date.atTime(time).atZone(ZoneId.of("UTC")).toInstant()
                                 .toEpochMilli()
 
                         viewModelScope.launch {

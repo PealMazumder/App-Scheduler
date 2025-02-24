@@ -1,6 +1,7 @@
 package com.peal.appscheduler.domain.mappers
 
 import com.peal.appscheduler.domain.model.AppSchedule
+import com.peal.appscheduler.domain.model.DeviceAppInfo
 import com.peal.appscheduler.domain.utils.formatScheduledTime
 import com.peal.appscheduler.ui.model.ScheduleAppInfoUi
 
@@ -16,3 +17,11 @@ fun AppSchedule.toScheduleAppInfoUi() = ScheduleAppInfoUi(
     time = this.scheduledTime.formatScheduledTime(),
     icon = null
 )
+
+fun ScheduleAppInfoUi.toDeviceAppInfo() = DeviceAppInfo(
+    id = this.id,
+    name = this.name,
+    packageName = this.packageName,
+    icon = null
+)
+
