@@ -47,7 +47,7 @@ fun NavGraph(
                 onNavigationEvent = { event ->
                     if (event is HomeNavigationEvent.OnNavigateScheduledApps) {
                         sharedViewModel.setSelectedAppInfo(event.appInfo.toDeviceAppInfo())
-                        sharedViewModel.setScheduledDateAndTime(event.appInfo.time)
+                        sharedViewModel.setScheduledDateAndTime(event.appInfo.utcScheduleTime)
                     }
                     navigation.onNavigation(event)
                 }
@@ -74,7 +74,7 @@ fun NavGraph(
             val schedulerViewModel: SchedulerViewModel = hiltViewModel()
 
             schedulerViewModel.updateAppInfo(sharedViewModel.appInfo)
-            sharedViewModel.scheduleTime?.let { it1 ->
+            sharedViewModel.scheduleTimeUtc?.let { it1 ->
                 schedulerViewModel.updateScheduleTime(it1)
                 schedulerViewModel.setEditState(true)
                 sharedViewModel.clearScheduleTimeData()

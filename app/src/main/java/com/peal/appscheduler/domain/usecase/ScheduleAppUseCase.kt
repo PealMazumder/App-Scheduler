@@ -15,19 +15,24 @@ class ScheduleAppUseCase @Inject constructor(
     private val scheduleRepository: ScheduleRepository,
     private val alarmManagerWrapper: AlarmManagerWrapper
 ) {
-    suspend operator fun invoke(schedule: AppSchedule): ScheduleResult<Long> = runCatching {
-        // TODO: Handle past time and time conflict scenario
+    suspend operator fun invoke(schedule: AppSchedule, isEdit: Boolean): ScheduleResult<Long> =
+        runCatching {
+            // TODO: Handle past time and time conflict scenario
+            var scheduleId: Long = -1
+            try {
+                if (isEdit) {
+                    alarmManagerWrapper.updateSchedule(schedule.packageName, schedule.scheduledTime)
+                    scheduleRepository.updateSchedule(schedule)
+                } else {
+                    alarmManagerWrapper.scheduleApp(schedule.packageName, schedule.scheduledTime)
+                    scheduleId = scheduleRepository.addSchedule(schedule)
+                }
 
-       try {
-           alarmManagerWrapper.scheduleApp(schedule.packageName, schedule.scheduledTime)
-
-           val scheduleId = scheduleRepository.addSchedule(schedule)
-
-           ScheduleResult.Success(scheduleId)
-       } catch (e: Exception) {
-           ScheduleResult.Error(e.localizedMessage ?: "Unknown error")
-       }
-    }.getOrElse { exception ->
-        ScheduleResult.Error(exception.localizedMessage ?: "Unknown error")
-    }
+                ScheduleResult.Success(scheduleId)
+            } catch (e: Exception) {
+                ScheduleResult.Error(e.localizedMessage ?: "Unknown error")
+            }
+        }.getOrElse { exception ->
+            ScheduleResult.Error(exception.localizedMessage ?: "Unknown error")
+        }
 }

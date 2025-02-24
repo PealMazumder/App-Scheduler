@@ -11,4 +11,6 @@ interface ScheduleRepository {
     suspend fun addSchedule(schedule: AppSchedule): Long
 
     suspend fun getAllScheduledApps(): List<AppSchedule>
+
+    suspend fun updateSchedule(newSchedule: AppSchedule)
 }

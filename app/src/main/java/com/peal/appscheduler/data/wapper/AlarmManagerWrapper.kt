@@ -50,4 +50,9 @@ class AlarmManagerWrapper @Inject constructor(
 
         alarmManager.cancel(pendingIntent)
     }
+
+    fun updateSchedule(packageName: String, newScheduleTime: Long) {
+        cancelSchedule(packageName)
+        scheduleApp(packageName, newScheduleTime)
+    }
 }

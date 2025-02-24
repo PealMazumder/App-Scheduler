@@ -10,6 +10,7 @@ import com.peal.appscheduler.domain.model.AppSchedule
 
 
 fun AppSchedule.toEntity(): ScheduleEntity = ScheduleEntity(
+    id = id,
     packageName = packageName,
     scheduledTime = scheduledTime,
     appName = appName,

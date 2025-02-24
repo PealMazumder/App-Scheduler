@@ -12,4 +12,5 @@ data class ScheduleAppInfoUi(
     val packageName: String,
     val icon: Drawable?,
     val time: String,
+    val utcScheduleTime: Long,
 )

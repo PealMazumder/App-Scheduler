@@ -14,18 +14,18 @@ import javax.inject.Inject
 class SharedDeviceAppViewModel @Inject constructor() : ViewModel() {
     var appInfo: DeviceAppInfo? = null
 
-    var scheduleTime: String? = null
+    var scheduleTimeUtc: Long? = null
 
 
     fun setSelectedAppInfo(appInfo: DeviceAppInfo) {
         this.appInfo = appInfo
     }
 
-    fun setScheduledDateAndTime(time: String) {
-        scheduleTime = time
+    fun setScheduledDateAndTime(time: Long) {
+        scheduleTimeUtc = time
     }
 
     fun clearScheduleTimeData() {
-        scheduleTime = null
+        scheduleTimeUtc = null
     }
 }

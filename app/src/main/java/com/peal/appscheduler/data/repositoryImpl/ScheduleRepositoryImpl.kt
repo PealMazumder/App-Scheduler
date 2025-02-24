@@ -21,4 +21,8 @@ class ScheduleRepositoryImpl @Inject constructor(
     override suspend fun getAllScheduledApps(): List<AppSchedule> {
         return scheduleDao.getAllScheduledApps().map { it.toAppSchedule() }
     }
+
+    override suspend fun updateSchedule(newSchedule: AppSchedule) {
+        scheduleDao.update(newSchedule.toEntity())
+    }
 }

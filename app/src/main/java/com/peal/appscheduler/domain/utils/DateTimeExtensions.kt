@@ -25,22 +25,33 @@ fun LocalTime.toFormattedTime(): String {
 
 fun Long.formatScheduledTime(): String {
     val formatter = DateTimeFormatter.ofPattern("MMMM dd, yyyy | hh:mm a")
-        .withZone(ZoneId.systemDefault())
-
-    return formatter.format(Instant.ofEpochMilli(this))
+        .withZone(ZoneId.of("UTC"))
+    val instant = Instant.ofEpochMilli(this)
+    return formatter.format(instant)
 }
 
-fun String.toFormattedPattern(
-    fromPattern: String = "MMMM dd, yyyy | hh:mm a",
+fun Long.toFormattedPattern(
     toPattern: String = "MMMM dd, yyyy"
 ): String {
     return try {
-        val fromFormatter = DateTimeFormatter.ofPattern(fromPattern, Locale.getDefault())
-        val toFormatter = DateTimeFormatter.ofPattern(toPattern, Locale.getDefault())
-        val dateTime = LocalDateTime.parse(this, fromFormatter)
-        dateTime.format(toFormatter)
+        val zonedDateTime = Instant.ofEpochMilli(this)
+            .atZone(ZoneId.of("UTC"))
+
+        val formatter = DateTimeFormatter.ofPattern(toPattern, Locale.getDefault())
+        zonedDateTime.format(formatter)
     } catch (e: Exception) {
         e.printStackTrace()
-        this
+        this.toString()
     }
+}
+
+fun String.toLocalTime(): LocalTime {
+    val formatter = DateTimeFormatter.ofPattern("hh:mm a")
+    val dateTime = LocalDateTime.parse(this, formatter)
+    return dateTime.toLocalTime()
+}
+
+fun String.toLocalDate(): LocalDate {
+    val formatter = DateTimeFormatter.ofPattern("MMMM dd, yyyy")
+    return LocalDate.parse(this, formatter)
 }

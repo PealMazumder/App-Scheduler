@@ -20,7 +20,11 @@ fun TimePickerDialog(
     onDismissRequest: () -> Unit,
     onTimeSelected: (LocalTime) -> Unit
 ) {
-    val timePickerState = rememberTimePickerState()
+    val currentTime = LocalTime.now()
+    val timePickerState = rememberTimePickerState(
+        initialHour = currentTime.hour,
+        initialMinute = currentTime.minute
+    )
 
     AlertDialog(
         onDismissRequest = onDismissRequest,

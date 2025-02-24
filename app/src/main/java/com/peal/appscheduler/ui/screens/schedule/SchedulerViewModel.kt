@@ -10,6 +10,8 @@ import com.peal.appscheduler.domain.utils.ScheduleResult
 import com.peal.appscheduler.domain.utils.toFormattedDate
 import com.peal.appscheduler.domain.utils.toFormattedPattern
 import com.peal.appscheduler.domain.utils.toFormattedTime
+import com.peal.appscheduler.domain.utils.toLocalDate
+import com.peal.appscheduler.domain.utils.toLocalTime
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -36,11 +38,14 @@ class SchedulerViewModel @Inject constructor(
     private var selectedDate: LocalDate? = null
     private var selectedTime: LocalTime? = null
 
+    private var previousScheduleTimeInMilli: Long? = null
+
     fun updateAppInfo(appInfo: DeviceAppInfo?) {
         _schedulerScreenState.update { it.copy(appInfo = appInfo) }
     }
 
-    fun updateScheduleTime(time: String) {
+    fun updateScheduleTime(time: Long) {
+        previousScheduleTimeInMilli = time
         _schedulerScreenState.update {
             it.copy(
                 selectedDate = time.toFormattedPattern(),
@@ -56,54 +61,7 @@ class SchedulerViewModel @Inject constructor(
     fun handleIntent(intent: SchedulerScreenIntent) {
         when (intent) {
             is SchedulerScreenIntent.ScheduleApp -> {
-                schedulerScreenState.value.appInfo?.let { appInfo ->
-                    val date = selectedDate
-                    val time = selectedTime
-
-                    if (date != null && time != null) {
-                        _schedulerScreenState.update {
-                            it.copy(isLoading = true)
-                        }
-                        val scheduledTime =
-                            date.atTime(time).atZone(ZoneId.of("UTC")).toInstant()
-                                .toEpochMilli()
-
-                        viewModelScope.launch {
-                            scheduleAppUseCase.invoke(
-                                AppSchedule(
-                                    appName = appInfo.name,
-                                    packageName = appInfo.packageName,
-                                    status = ScheduleStatus.SCHEDULED.name,
-                                    scheduledTime = scheduledTime
-                                )
-                            ).let { result ->
-                                when (result) {
-                                    is ScheduleResult.Success -> {
-                                        _schedulerScreenState.update {
-                                            it.copy(
-                                                isLoading = false,
-                                                message = "App scheduled successfully"
-                                            )
-                                        }
-                                    }
-
-                                    is ScheduleResult.Error -> {
-                                        _schedulerScreenState.update {
-                                            it.copy(isLoading = false, message = result.message)
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    } else {
-                        _schedulerScreenState.update {
-                            it.copy(
-                                isLoading = false,
-                                message = "Please select both date and time for scheduling."
-                            )
-                        }
-                    }
-                }
+                insertSchedule(schedulerScreenState.value.isEdit)
             }
 
             is SchedulerScreenIntent.OnDateSelected -> {
@@ -119,5 +77,63 @@ class SchedulerViewModel @Inject constructor(
             }
         }
     }
+
+
+    private fun insertSchedule(edit: Boolean) {
+        schedulerScreenState.value.appInfo?.let { appInfo ->
+            val date = selectedDate ?: _schedulerScreenState.value.selectedDate?.toLocalDate()
+            val time = selectedTime ?: _schedulerScreenState.value.selectedTime?.toLocalTime()
+
+            if (date != null && time != null) {
+                _schedulerScreenState.update {
+                    it.copy(isLoading = true)
+                }
+                val scheduledTime =
+                    date.atTime(time).atZone(ZoneId.of("UTC")).toInstant()
+                        .toEpochMilli()
+
+                viewModelScope.launch {
+                    scheduleAppUseCase.invoke(
+                        AppSchedule(
+                            id = appInfo.id,
+                            appName = appInfo.name,
+                            packageName = appInfo.packageName,
+                            status = ScheduleStatus.SCHEDULED.name,
+                            scheduledTime = scheduledTime
+                        ),
+                        edit
+                    ).let { result ->
+                        when (result) {
+                            is ScheduleResult.Success -> {
+                                _schedulerScreenState.update {
+                                    it.copy(
+                                        isLoading = false,
+                                        message = "App scheduled successfully"
+                                    )
+                                }
+
+                                previousScheduleTimeInMilli = scheduledTime
+                            }
+
+                            is ScheduleResult.Error -> {
+                                _schedulerScreenState.update {
+                                    it.copy(isLoading = false, message = result.message)
+                                }
+                            }
+                        }
+                    }
+                }
+            } else {
+                _schedulerScreenState.update {
+                    it.copy(
+                        isLoading = false,
+                        message = "Please select both date and time for scheduling."
+                    )
+                }
+            }
+        }
+    }
+
+
 }
 
