@@ -34,10 +34,13 @@ fun ScheduledAppItem(
             .clickable(onClick = onClick),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        AppIcon(
-            icon = app.icon,
-            appName = app.name
-        )
+        app.icon?.let {
+            AppIcon(
+                icon = app.icon,
+                appName = app.name
+            )
+        }
+
 
         Spacer(modifier = Modifier.width(16.dp))
 

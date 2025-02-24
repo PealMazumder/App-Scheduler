@@ -2,6 +2,7 @@ package com.peal.appscheduler.data.local
 
 import androidx.room.Dao
 import androidx.room.Insert
+import androidx.room.Query
 import com.peal.appscheduler.data.local.model.ScheduleEntity
 
 
@@ -14,4 +15,7 @@ import com.peal.appscheduler.data.local.model.ScheduleEntity
 interface ScheduleDao {
     @Insert
     suspend fun insert(schedule: ScheduleEntity): Long
+
+    @Query("SELECT * FROM schedules")
+    suspend fun getAllScheduledApps(): List<ScheduleEntity>
 }

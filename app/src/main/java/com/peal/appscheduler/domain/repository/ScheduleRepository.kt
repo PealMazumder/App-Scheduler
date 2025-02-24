@@ -1,5 +1,6 @@
 package com.peal.appscheduler.domain.repository
 
+import com.peal.appscheduler.domain.model.AppSchedule
 
 
 /**
@@ -8,18 +9,6 @@ package com.peal.appscheduler.domain.repository
 
 interface ScheduleRepository {
     suspend fun addSchedule(schedule: AppSchedule): Long
-}
 
-data class AppSchedule(
-    val packageName: String,
-    val appName: String,
-    val scheduledTime: Long,
-    val status: String,
-)
-
-enum class ScheduleStatus {
-    SCHEDULED,
-    EXECUTED,
-    CANCELLED,
-    FAILED
+    suspend fun getAllScheduledApps(): List<AppSchedule>
 }

@@ -2,9 +2,9 @@ package com.peal.appscheduler.ui.screens.schedule
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.peal.appscheduler.domain.enums.ScheduleStatus
+import com.peal.appscheduler.domain.model.AppSchedule
 import com.peal.appscheduler.domain.model.DeviceAppInfo
-import com.peal.appscheduler.domain.repository.AppSchedule
-import com.peal.appscheduler.domain.repository.ScheduleStatus
 import com.peal.appscheduler.domain.usecase.ScheduleAppUseCase
 import com.peal.appscheduler.domain.utils.ScheduleResult
 import com.peal.appscheduler.domain.utils.toFormattedDate

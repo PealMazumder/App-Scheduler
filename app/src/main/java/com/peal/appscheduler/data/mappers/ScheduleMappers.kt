@@ -1,7 +1,7 @@
 package com.peal.appscheduler.data.mappers
 
 import com.peal.appscheduler.data.local.model.ScheduleEntity
-import com.peal.appscheduler.domain.repository.AppSchedule
+import com.peal.appscheduler.domain.model.AppSchedule
 
 
 /**
@@ -10,6 +10,15 @@ import com.peal.appscheduler.domain.repository.AppSchedule
 
 
 fun AppSchedule.toEntity(): ScheduleEntity = ScheduleEntity(
+    packageName = packageName,
+    scheduledTime = scheduledTime,
+    appName = appName,
+    status = status
+)
+
+
+fun ScheduleEntity.toAppSchedule(): AppSchedule = AppSchedule(
+    id = id,
     packageName = packageName,
     scheduledTime = scheduledTime,
     appName = appName,

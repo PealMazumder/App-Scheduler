@@ -9,6 +9,7 @@ import com.peal.appscheduler.ui.model.ScheduleAppInfoUi
  */
 
 @Immutable
-class HomeScreenState {
-    val scheduleApps = emptyList<ScheduleAppInfoUi>()
-}
+data class HomeScreenState (
+    val isLoading: Boolean = false,
+    val scheduledApps: List<ScheduleAppInfoUi> = emptyList()
+)

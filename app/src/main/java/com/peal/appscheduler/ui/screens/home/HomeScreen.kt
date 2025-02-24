@@ -42,8 +42,8 @@ fun HomeScreen(
                 .padding(paddingValues)
         ) {
             items(
-                items = homeScreenState.scheduleApps,
-                key = { it.packageName }
+                items = homeScreenState.scheduledApps,
+                key = { it.id }
             ) { schedule ->
                 ScheduledAppItem(
                     app = schedule,
