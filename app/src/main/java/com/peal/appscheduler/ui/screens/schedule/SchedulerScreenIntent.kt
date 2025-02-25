@@ -12,4 +12,5 @@ sealed class SchedulerScreenIntent {
     data object ScheduleApp : SchedulerScreenIntent()
     data class OnDateSelected(val date: LocalDate) : SchedulerScreenIntent()
     data class OnTimeSelected(val time: LocalTime) : SchedulerScreenIntent()
+    data object CancelSchedule : SchedulerScreenIntent()
 }

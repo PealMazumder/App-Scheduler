@@ -30,6 +30,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.peal.appscheduler.R
 import com.peal.appscheduler.domain.model.DeviceAppInfo
+import com.peal.appscheduler.ui.screens.components.CommonCircularProgressIndicator
 import com.peal.appscheduler.ui.screens.components.DatePickerDialog
 import com.peal.appscheduler.ui.screens.components.TimePickerDialog
 import com.peal.appscheduler.ui.screens.deviceApps.InstalledAppItem
@@ -131,6 +132,10 @@ fun SchedulerScreen(
                 showTimePicker = false
             }
         )
+    }
+
+    if (state.isLoading) {
+        CommonCircularProgressIndicator(modifier = modifier)
     }
 }
 

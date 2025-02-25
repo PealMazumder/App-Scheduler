@@ -49,8 +49,7 @@ fun String.toLocalTime(
     pattern: String = "hh:mm a",
 ): LocalTime {
     val formatter = DateTimeFormatter.ofPattern(pattern)
-    val dateTime = LocalDateTime.parse(this, formatter)
-    return dateTime.toLocalTime()
+    return LocalTime.parse(this, formatter)
 }
 
 fun String.toLocalDate(

@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.peal.appscheduler.domain.enums.ScheduleStatus
 import com.peal.appscheduler.domain.model.AppSchedule
 import com.peal.appscheduler.domain.model.DeviceAppInfo
+import com.peal.appscheduler.domain.usecase.CancelScheduledAppUseCase
 import com.peal.appscheduler.domain.usecase.ScheduleAppUseCase
 import com.peal.appscheduler.domain.utils.ScheduleResult
 import com.peal.appscheduler.domain.utils.toFormattedDate
@@ -29,7 +30,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SchedulerViewModel @Inject constructor(
-    private val scheduleAppUseCase: ScheduleAppUseCase
+    private val scheduleAppUseCase: ScheduleAppUseCase,
+    private val cancelScheduledAppUseCase: CancelScheduledAppUseCase,
 ) : ViewModel() {
 
     private val _schedulerScreenState = MutableStateFlow(SchedulerScreenState())
@@ -73,6 +75,12 @@ class SchedulerViewModel @Inject constructor(
                 selectedTime = intent.time
                 _schedulerScreenState.update {
                     it.copy(selectedTime = intent.time.toFormattedTime())
+                }
+            }
+
+            SchedulerScreenIntent.CancelSchedule -> {
+                schedulerScreenState.value.appInfo?.let { appInfo ->
+                    cancelScheduledAppUseCase.invoke(appInfo.packageName, appInfo.id)
                 }
             }
         }
