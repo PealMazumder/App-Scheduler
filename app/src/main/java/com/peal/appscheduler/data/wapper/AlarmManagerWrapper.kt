@@ -5,6 +5,7 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import com.peal.appscheduler.domain.repository.AlarmManagerRepository
 import com.peal.appscheduler.ui.AppSchedulerReceiver
 import javax.inject.Inject
 
@@ -15,10 +16,10 @@ import javax.inject.Inject
 
 class AlarmManagerWrapper @Inject constructor(
     private val context: Context
-) {
+) : AlarmManagerRepository {
     private val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
-    fun scheduleApp(packageName: String, scheduleTime: Long, scheduleId: Long): Result<Unit> {
+    override fun scheduleApp(packageName: String, scheduleTime: Long, scheduleId: Long): Result<Unit> {
         return try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 if (!alarmManager.canScheduleExactAlarms()) {
@@ -43,7 +44,7 @@ class AlarmManagerWrapper @Inject constructor(
         }
     }
 
-    fun cancelSchedule(packageName: String, scheduleId: Long): Result<Unit> {
+    override fun cancelSchedule(packageName: String, scheduleId: Long): Result<Unit> {
         return try {
             val intent = Intent(context, AppSchedulerReceiver::class.java).apply {
                 putExtra("PACKAGE_NAME", packageName)
@@ -62,7 +63,7 @@ class AlarmManagerWrapper @Inject constructor(
         }
     }
 
-    fun updateSchedule(packageName: String, newScheduleTime: Long, scheduleId: Long): Result<Unit> {
+    override fun updateSchedule(packageName: String, newScheduleTime: Long, scheduleId: Long): Result<Unit> {
         return cancelSchedule(packageName, scheduleId).fold(
             onSuccess = {
                 try {

@@ -1,9 +1,9 @@
 package com.peal.appscheduler.domain.usecase
 
-import com.peal.appscheduler.data.wapper.AlarmManagerWrapper
 import com.peal.appscheduler.domain.model.AppSchedule
-import com.peal.appscheduler.domain.utils.ScheduleResult
+import com.peal.appscheduler.domain.repository.AlarmManagerRepository
 import com.peal.appscheduler.domain.repository.ScheduleRepository
+import com.peal.appscheduler.domain.utils.ScheduleResult
 import javax.inject.Inject
 
 
@@ -13,7 +13,7 @@ import javax.inject.Inject
 
 class ScheduleAppUseCase @Inject constructor(
     private val scheduleRepository: ScheduleRepository,
-    private val alarmManagerWrapper: AlarmManagerWrapper
+    private val alarmManagerRepository: AlarmManagerRepository,
 ) {
     suspend operator fun invoke(schedule: AppSchedule, isEdit: Boolean): ScheduleResult<Long> =
         runCatching {
@@ -21,7 +21,7 @@ class ScheduleAppUseCase @Inject constructor(
             var scheduleId: Long = schedule.id
             try {
                 if (isEdit) {
-                    alarmManagerWrapper.updateSchedule(
+                    alarmManagerRepository.updateSchedule(
                         schedule.packageName,
                         schedule.scheduledTime,
                         scheduleId
@@ -29,7 +29,7 @@ class ScheduleAppUseCase @Inject constructor(
                     scheduleRepository.updateSchedule(schedule)
                 } else {
                     scheduleId = scheduleRepository.addSchedule(schedule)
-                    alarmManagerWrapper.scheduleApp(
+                    alarmManagerRepository.scheduleApp(
                         schedule.packageName,
                         schedule.scheduledTime,
                         scheduleId

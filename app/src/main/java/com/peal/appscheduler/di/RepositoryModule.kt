@@ -2,6 +2,8 @@ package com.peal.appscheduler.di
 
 import com.peal.appscheduler.data.repositoryImpl.DeviceAppsRepositoryImpl
 import com.peal.appscheduler.data.repositoryImpl.ScheduleRepositoryImpl
+import com.peal.appscheduler.data.wapper.AlarmManagerWrapper
+import com.peal.appscheduler.domain.repository.AlarmManagerRepository
 import com.peal.appscheduler.domain.repository.DeviceAppsRepository
 import com.peal.appscheduler.domain.repository.ScheduleRepository
 import dagger.Binds
@@ -25,4 +27,8 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindScheduleRepository(scheduleRepositoryImpl: ScheduleRepositoryImpl): ScheduleRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindAlarmManagerRepository(alarmManagerWrapper: AlarmManagerWrapper): AlarmManagerRepository
 }

@@ -1,6 +1,6 @@
 package com.peal.appscheduler.domain.usecase
 
-import com.peal.appscheduler.data.wapper.AlarmManagerWrapper
+import com.peal.appscheduler.domain.repository.AlarmManagerRepository
 import javax.inject.Inject
 
 
@@ -9,9 +9,9 @@ import javax.inject.Inject
  */
 
 class CancelScheduledAppUseCase @Inject constructor(
-    private val alarmManagerWrapper: AlarmManagerWrapper
+    private val alarmManagerRepository: AlarmManagerRepository,
 ) {
     operator fun invoke(packageName: String, id: Long): Result<Unit> {
-        return alarmManagerWrapper.cancelSchedule(packageName, id)
+        return alarmManagerRepository.cancelSchedule(packageName, id)
     }
 }
