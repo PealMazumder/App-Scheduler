@@ -18,14 +18,23 @@ class ScheduleAppUseCase @Inject constructor(
     suspend operator fun invoke(schedule: AppSchedule, isEdit: Boolean): ScheduleResult<Long> =
         runCatching {
             // TODO: Handle past time and time conflict scenario
-            var scheduleId: Long = -1
+            var scheduleId: Long = schedule.id
             try {
                 if (isEdit) {
-                    alarmManagerWrapper.updateSchedule(schedule.packageName, schedule.scheduledTime)
+                    alarmManagerWrapper.updateSchedule(
+                        schedule.packageName,
+                        schedule.scheduledTime,
+                        scheduleId
+                    )
                     scheduleRepository.updateSchedule(schedule)
                 } else {
-                    alarmManagerWrapper.scheduleApp(schedule.packageName, schedule.scheduledTime)
                     scheduleId = scheduleRepository.addSchedule(schedule)
+                    alarmManagerWrapper.scheduleApp(
+                        schedule.packageName,
+                        schedule.scheduledTime,
+                        scheduleId
+                    )
+
                 }
 
                 ScheduleResult.Success(scheduleId)

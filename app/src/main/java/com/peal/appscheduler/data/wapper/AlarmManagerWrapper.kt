@@ -18,7 +18,7 @@ class AlarmManagerWrapper @Inject constructor(
 ) {
     private val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
-    fun scheduleApp(packageName: String, scheduleTime: Long) {
+    fun scheduleApp(packageName: String, scheduleTime: Long, scheduleId: Long) {
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             if (!alarmManager.canScheduleExactAlarms()) {
@@ -28,10 +28,11 @@ class AlarmManagerWrapper @Inject constructor(
 
         val intent = Intent(context, AppSchedulerReceiver::class.java).apply {
             putExtra("PACKAGE_NAME", packageName)
+            putExtra("ALARM_ID", scheduleId)
         }
 
         val pendingIntent = PendingIntent.getBroadcast(
-            context, 0, intent,
+            context, scheduleId.toInt(), intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
         alarmManager.setExact(AlarmManager.RTC_WAKEUP, scheduleTime, pendingIntent)
@@ -51,8 +52,8 @@ class AlarmManagerWrapper @Inject constructor(
         alarmManager.cancel(pendingIntent)
     }
 
-    fun updateSchedule(packageName: String, newScheduleTime: Long) {
+    fun updateSchedule(packageName: String, newScheduleTime: Long, scheduleId: Long) {
         cancelSchedule(packageName)
-        scheduleApp(packageName, newScheduleTime)
+        scheduleApp(packageName, newScheduleTime, scheduleId)
     }
 }

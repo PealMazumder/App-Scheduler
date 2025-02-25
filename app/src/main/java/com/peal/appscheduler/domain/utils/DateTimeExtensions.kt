@@ -25,7 +25,7 @@ fun LocalTime.toFormattedTime(): String {
 
 fun Long.formatScheduledTime(): String {
     val formatter = DateTimeFormatter.ofPattern("MMMM dd, yyyy | hh:mm a")
-        .withZone(ZoneId.of("UTC"))
+        .withZone(ZoneId.systemDefault())
     val instant = Instant.ofEpochMilli(this)
     return formatter.format(instant)
 }
