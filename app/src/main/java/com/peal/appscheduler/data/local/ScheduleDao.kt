@@ -22,4 +22,7 @@ interface ScheduleDao {
 
     @Update
     suspend fun update(scheduleEntity: ScheduleEntity)
+
+    @Query("UPDATE schedules SET status = :status WHERE id = :id")
+    suspend fun updateStatus(id: Long, status: String)
 }

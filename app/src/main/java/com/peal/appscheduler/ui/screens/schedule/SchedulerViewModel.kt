@@ -78,9 +78,14 @@ class SchedulerViewModel @Inject constructor(
                 }
             }
 
-            SchedulerScreenIntent.CancelSchedule -> {
-                schedulerScreenState.value.appInfo?.let { appInfo ->
-                    cancelScheduledAppUseCase.invoke(appInfo.packageName, appInfo.id)
+            is SchedulerScreenIntent.CancelSchedule -> {
+                viewModelScope.launch {
+                    _schedulerScreenState.update { it.copy(isLoading = true) }
+                    schedulerScreenState.value.appInfo?.let { appInfo ->
+                        cancelScheduledAppUseCase.invoke(appInfo.packageName, appInfo.id)
+                    }
+
+                    _schedulerScreenState.update { it.copy(isLoading = false) }
                 }
             }
         }

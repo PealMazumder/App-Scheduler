@@ -70,6 +70,12 @@ fun ScheduledAppItem(
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+
+                Text(
+                    text = "Status: ${app.status}",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
 

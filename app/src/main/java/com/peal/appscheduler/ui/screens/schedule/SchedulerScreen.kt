@@ -108,7 +108,7 @@ fun SchedulerScreen(
                 onIntent.invoke(SchedulerScreenIntent.ScheduleApp)
             },
             onCancel = {
-
+                onIntent.invoke(SchedulerScreenIntent.CancelSchedule)
             },
             state
         )

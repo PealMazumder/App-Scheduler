@@ -25,4 +25,8 @@ class ScheduleRepositoryImpl @Inject constructor(
     override suspend fun updateSchedule(newSchedule: AppSchedule) {
         scheduleDao.update(newSchedule.toEntity())
     }
+
+    override suspend fun updateScheduleStatus(id: Long, status: String) {
+        scheduleDao.updateStatus(id, status)
+    }
 }

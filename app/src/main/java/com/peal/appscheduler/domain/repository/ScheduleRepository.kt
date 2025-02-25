@@ -13,4 +13,6 @@ interface ScheduleRepository {
     suspend fun getAllScheduledApps(): List<AppSchedule>
 
     suspend fun updateSchedule(newSchedule: AppSchedule)
+
+    suspend fun updateScheduleStatus(id: Long, status: String)
 }

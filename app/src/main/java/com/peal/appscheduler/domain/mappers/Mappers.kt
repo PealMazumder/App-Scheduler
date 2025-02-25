@@ -16,7 +16,8 @@ fun AppSchedule.toScheduleAppInfoUi() = ScheduleAppInfoUi(
     packageName = this.packageName,
     time = this.scheduledTime.formatScheduledTime(),
     utcScheduleTime = this.scheduledTime,
-    icon = null
+    icon = null,
+    status = this.status,
 )
 
 fun ScheduleAppInfoUi.toDeviceAppInfo() = DeviceAppInfo(
