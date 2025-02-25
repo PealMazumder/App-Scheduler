@@ -2,6 +2,7 @@ package com.peal.appscheduler.data.mappers
 
 import com.peal.appscheduler.data.local.model.ScheduleEntity
 import com.peal.appscheduler.domain.model.AppSchedule
+import com.peal.appscheduler.domain.utils.toUtcEpochMillis
 
 
 /**
@@ -12,7 +13,7 @@ import com.peal.appscheduler.domain.model.AppSchedule
 fun AppSchedule.toEntity(): ScheduleEntity = ScheduleEntity(
     id = id,
     packageName = packageName,
-    scheduledTime = scheduledTime,
+    scheduledTime = scheduledTime.toUtcEpochMillis(),
     appName = appName,
     status = status
 )

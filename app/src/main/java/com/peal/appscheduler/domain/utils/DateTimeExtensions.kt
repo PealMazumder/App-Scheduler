@@ -45,13 +45,24 @@ fun Long.toFormattedPattern(
     }
 }
 
-fun String.toLocalTime(): LocalTime {
-    val formatter = DateTimeFormatter.ofPattern("hh:mm a")
+fun String.toLocalTime(
+    pattern: String = "hh:mm a",
+): LocalTime {
+    val formatter = DateTimeFormatter.ofPattern(pattern)
     val dateTime = LocalDateTime.parse(this, formatter)
     return dateTime.toLocalTime()
 }
 
-fun String.toLocalDate(): LocalDate {
-    val formatter = DateTimeFormatter.ofPattern("MMMM dd, yyyy")
+fun String.toLocalDate(
+    pattern: String = "MMMM dd, yyyy",
+): LocalDate {
+    val formatter = DateTimeFormatter.ofPattern(pattern)
     return LocalDate.parse(this, formatter)
+}
+
+fun Long.toUtcEpochMillis(): Long {
+    return Instant.ofEpochMilli(this)
+        .atZone(ZoneId.of("UTC"))
+        .toInstant()
+        .toEpochMilli()
 }

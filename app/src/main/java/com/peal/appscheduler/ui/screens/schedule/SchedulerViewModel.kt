@@ -89,7 +89,7 @@ class SchedulerViewModel @Inject constructor(
                     it.copy(isLoading = true)
                 }
                 val scheduledTime =
-                    date.atTime(time).atZone(ZoneId.of("UTC")).toInstant()
+                    date.atTime(time).atZone(ZoneId.systemDefault()).toInstant()
                         .toEpochMilli()
 
                 viewModelScope.launch {
