@@ -14,6 +14,7 @@ import com.peal.appscheduler.domain.utils.toFormattedTime
 import com.peal.appscheduler.domain.utils.toLocalDate
 import com.peal.appscheduler.domain.utils.toLocalTime
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -81,6 +82,7 @@ class SchedulerViewModel @Inject constructor(
             is SchedulerScreenIntent.CancelSchedule -> {
                 viewModelScope.launch {
                     _schedulerScreenState.update { it.copy(isLoading = true) }
+                    delay(500)
                     schedulerScreenState.value.appInfo?.let { appInfo ->
                         cancelScheduledAppUseCase.invoke(appInfo.packageName, appInfo.id)
                     }
@@ -106,6 +108,7 @@ class SchedulerViewModel @Inject constructor(
                         .toEpochMilli()
 
                 viewModelScope.launch {
+                    delay(500)
                     scheduleAppUseCase.invoke(
                         AppSchedule(
                             id = appInfo.id,

@@ -19,6 +19,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -34,6 +36,7 @@ import com.peal.appscheduler.ui.screens.components.CommonCircularProgressIndicat
 import com.peal.appscheduler.ui.screens.components.DatePickerDialog
 import com.peal.appscheduler.ui.screens.components.TimePickerDialog
 import com.peal.appscheduler.ui.screens.deviceApps.InstalledAppItem
+import com.peal.appscheduler.ui.utils.debounce
 import java.time.LocalDate
 import java.time.LocalTime
 
@@ -159,6 +162,10 @@ private fun ActionButtons(
     onCancel: () -> Unit,
     state: SchedulerScreenState,
 ) {
+    val coroutineScope = rememberCoroutineScope()
+    val debouncedSave = remember { onSave.debounce(coroutineScope) }
+    val debouncedCancel = remember { onCancel.debounce(coroutineScope) }
+
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.Center,
@@ -166,7 +173,7 @@ private fun ActionButtons(
     ) {
         if (state.isEdit) {
             Button(
-                onClick = onCancel,
+                onClick = debouncedCancel,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.secondary
                 )
@@ -175,11 +182,10 @@ private fun ActionButtons(
             }
 
             Spacer(modifier = Modifier.width(16.dp))
-
         }
 
         Button(
-            onClick = onSave,
+            onClick = debouncedSave,
             colors = ButtonDefaults.buttonColors(
                 containerColor = MaterialTheme.colorScheme.primary
             )
