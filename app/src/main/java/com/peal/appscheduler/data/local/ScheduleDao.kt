@@ -5,6 +5,7 @@ import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
 import com.peal.appscheduler.data.local.model.ScheduleEntity
+import kotlinx.coroutines.flow.Flow
 
 
 /**
@@ -18,7 +19,7 @@ interface ScheduleDao {
     suspend fun insert(schedule: ScheduleEntity): Long
 
     @Query("SELECT * FROM schedules")
-    suspend fun getAllScheduledApps(): List<ScheduleEntity>
+    fun getAllScheduledApps(): Flow<List<ScheduleEntity>>
 
     @Update
     suspend fun update(scheduleEntity: ScheduleEntity)

@@ -2,6 +2,7 @@ package com.peal.appscheduler.domain.usecase
 
 import com.peal.appscheduler.domain.model.AppSchedule
 import com.peal.appscheduler.domain.repository.ScheduleRepository
+import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
 
@@ -12,7 +13,7 @@ import javax.inject.Inject
 class GetScheduledAppUseCase @Inject constructor(
     private val repository: ScheduleRepository
 ) {
-    suspend operator fun invoke(): List<AppSchedule> {
+    operator fun invoke(): Flow<List<AppSchedule>> {
         return repository.getAllScheduledApps()
     }
 }
