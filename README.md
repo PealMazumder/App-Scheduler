@@ -65,6 +65,7 @@ This Android application allows users to schedule any installed app to start at 
 │       ├── 📂 service
 │       └── 📂 receiver
 
+```
 
 ### **<u>ScreenShots</u>**
 <p align="center"> <img src="img.png" alt="Screenshot 1" width="24%"/> <img src="img_1.png" alt="Screenshot 2" width="24%"/> <img src="img_2.png" alt="Screenshot 3" width="24%"/> <img src="img_3.png" alt="Screenshot 4" width="24%"/> </p>
