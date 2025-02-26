@@ -1,8 +1,11 @@
 package com.peal.appscheduler.domain.utils
 
+import android.util.Log
+import com.peal.appscheduler.utils.DateTimePatterns.MMMM_DD_YYYY
+import com.peal.appscheduler.utils.DateTimePatterns.MMMM_DD_YYYY_TIME_12H
+import com.peal.appscheduler.utils.DateTimePatterns.TIME_12H
 import java.time.Instant
 import java.time.LocalDate
-import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -13,25 +16,27 @@ import java.util.Locale
  * Created by Peal Mazumder on 24/2/25.
  */
 
-fun LocalDate.toFormattedDate(): String {
-    val formatter = DateTimeFormatter.ofPattern("MMMM dd, yyyy")
+fun LocalDate.toFormattedDate(pattern: String = MMMM_DD_YYYY): String {
+    val formatter = DateTimeFormatter.ofPattern(pattern)
     return this.format(formatter)
 }
 
-fun LocalTime.toFormattedTime(): String {
-    val formatter = DateTimeFormatter.ofPattern("hh:mm a")
+fun LocalTime.toFormattedTime(pattern: String = TIME_12H): String {
+    val formatter = DateTimeFormatter.ofPattern(pattern)
     return this.format(formatter)
 }
 
-fun Long.formatScheduledTime(): String {
-    val formatter = DateTimeFormatter.ofPattern("MMMM dd, yyyy | hh:mm a")
+fun Long.formatScheduledTime(
+    pattern: String = MMMM_DD_YYYY_TIME_12H
+): String {
+    val formatter = DateTimeFormatter.ofPattern(pattern)
         .withZone(ZoneId.systemDefault())
     val instant = Instant.ofEpochMilli(this)
     return formatter.format(instant)
 }
 
 fun Long.toFormattedPattern(
-    toPattern: String = "MMMM dd, yyyy"
+    toPattern: String = MMMM_DD_YYYY,
 ): String {
     return try {
         val zonedDateTime = Instant.ofEpochMilli(this)
@@ -45,18 +50,24 @@ fun Long.toFormattedPattern(
     }
 }
 
-fun String.toLocalTime(
-    pattern: String = "hh:mm a",
-): LocalTime {
-    val formatter = DateTimeFormatter.ofPattern(pattern)
-    return LocalTime.parse(this, formatter)
+fun String.toLocalTime(pattern: String = TIME_12H): LocalTime? {
+    return try {
+        val formatter = DateTimeFormatter.ofPattern(pattern)
+        LocalTime.parse(this, formatter)
+    } catch (e: Exception) {
+        Log.e("DateTimeUtils", "Failed to parse time: ${e.message}")
+        null
+    }
 }
 
-fun String.toLocalDate(
-    pattern: String = "MMMM dd, yyyy",
-): LocalDate {
-    val formatter = DateTimeFormatter.ofPattern(pattern)
-    return LocalDate.parse(this, formatter)
+fun String.toLocalDate(pattern: String = MMMM_DD_YYYY): LocalDate? {
+    return try {
+        val formatter = DateTimeFormatter.ofPattern(pattern)
+        LocalDate.parse(this, formatter)
+    } catch (e: Exception) {
+        Log.e("DateTimeUtils", "Failed to parse date: ${e.message}")
+        null
+    }
 }
 
 fun Long.toUtcEpochMillis(): Long {

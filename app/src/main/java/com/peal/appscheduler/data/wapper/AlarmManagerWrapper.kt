@@ -7,6 +7,8 @@ import android.content.Intent
 import android.os.Build
 import com.peal.appscheduler.domain.repository.AlarmManagerRepository
 import com.peal.appscheduler.ui.AppSchedulerReceiver
+import com.peal.appscheduler.utils.AppConstant.EXTRA_PACKAGE_NAME
+import com.peal.appscheduler.utils.AppConstant.EXTRA_SCHEDULE_ID
 import javax.inject.Inject
 
 
@@ -28,8 +30,8 @@ class AlarmManagerWrapper @Inject constructor(
             }
 
             val intent = Intent(context, AppSchedulerReceiver::class.java).apply {
-                putExtra("PACKAGE_NAME", packageName)
-                putExtra("ALARM_ID", scheduleId)
+                putExtra(EXTRA_PACKAGE_NAME, packageName)
+                putExtra(EXTRA_SCHEDULE_ID, scheduleId)
             }
 
             val pendingIntent = PendingIntent.getBroadcast(
@@ -47,8 +49,8 @@ class AlarmManagerWrapper @Inject constructor(
     override fun cancelSchedule(packageName: String, scheduleId: Long): Result<Unit> {
         return try {
             val intent = Intent(context, AppSchedulerReceiver::class.java).apply {
-                putExtra("PACKAGE_NAME", packageName)
-                putExtra("ALARM_ID", scheduleId)
+                putExtra(EXTRA_PACKAGE_NAME, packageName)
+                putExtra(EXTRA_SCHEDULE_ID, scheduleId)
             }
 
             val pendingIntent = PendingIntent.getBroadcast(

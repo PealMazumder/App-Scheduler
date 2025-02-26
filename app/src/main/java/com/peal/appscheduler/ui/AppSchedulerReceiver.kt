@@ -4,6 +4,8 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import com.peal.appscheduler.utils.AppConstant.EXTRA_PACKAGE_NAME
+import com.peal.appscheduler.utils.AppConstant.EXTRA_SCHEDULE_ID
 
 
 /**
@@ -12,10 +14,12 @@ import android.os.Build
 
 class AppSchedulerReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context?, intent: Intent?) {
-        val packageName = intent?.getStringExtra("PACKAGE_NAME") ?: return
+        val packageName = intent?.getStringExtra(EXTRA_PACKAGE_NAME) ?: return
+        val scheduleId = intent.getLongExtra(EXTRA_SCHEDULE_ID, -1)
 
         val serviceIntent = Intent(context, AppLaunchService::class.java).apply {
-            putExtra("PACKAGE_NAME", packageName)
+            putExtra(EXTRA_PACKAGE_NAME, packageName)
+            putExtra(EXTRA_SCHEDULE_ID, scheduleId)
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
