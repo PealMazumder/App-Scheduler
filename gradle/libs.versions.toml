@@ -14,6 +14,7 @@ hilt = "2.52"
 hiltNav = "1.2.0"
 desugar = "2.0.3"
 roomRuntime = "2.6.1"
+archCoreTesting = "2.1.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -42,6 +43,9 @@ androidx-desugar = { group = "com.android.tools", name = "desugar_jdk_libs", ver
 androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "roomRuntime" }
 room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "roomRuntime" }
 room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "roomRuntime" }
+room-testing = { group = "androidx.room", name = "room-testing", version.ref = "roomRuntime" }
+arch-core-testing = { group = "androidx.arch.core", name = "core-testing", version.ref = "archCoreTesting" }
+
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
