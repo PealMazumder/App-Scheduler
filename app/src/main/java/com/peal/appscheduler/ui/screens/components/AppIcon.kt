@@ -14,7 +14,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
-import com.peal.appscheduler.utils.ImageUtils.drawableToBitmap
+import com.peal.appscheduler.ui.utils.ImageUtils.drawableToBitmap
 
 
 /**

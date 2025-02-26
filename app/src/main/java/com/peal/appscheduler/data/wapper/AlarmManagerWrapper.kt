@@ -6,7 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import com.peal.appscheduler.domain.repository.AlarmManagerRepository
-import com.peal.appscheduler.ui.AppSchedulerReceiver
+import com.peal.appscheduler.receiver.AppSchedulerReceiver
 import com.peal.appscheduler.utils.AppConstant.EXTRA_PACKAGE_NAME
 import com.peal.appscheduler.utils.AppConstant.EXTRA_SCHEDULE_ID
 import javax.inject.Inject

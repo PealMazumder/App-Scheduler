@@ -1,9 +1,10 @@
-package com.peal.appscheduler.ui
+package com.peal.appscheduler.receiver
 
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import com.peal.appscheduler.service.AppLaunchService
 import com.peal.appscheduler.utils.AppConstant.EXTRA_PACKAGE_NAME
 import com.peal.appscheduler.utils.AppConstant.EXTRA_SCHEDULE_ID
 

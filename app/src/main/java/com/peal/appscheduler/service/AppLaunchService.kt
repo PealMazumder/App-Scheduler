@@ -1,4 +1,4 @@
-package com.peal.appscheduler.ui
+package com.peal.appscheduler.service
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -77,16 +77,17 @@ class AppLaunchService : Service() {
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
-}
 
-private fun createNotificationChannel(context: Context) {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-        val channel = NotificationChannel(
-            APP_SCHEDULER_CHANNEL,
-            "App Scheduler",
-            NotificationManager.IMPORTANCE_LOW
-        )
-        val notificationManager = context.getSystemService(NotificationManager::class.java)
-        notificationManager?.createNotificationChannel(channel)
+    private fun createNotificationChannel(context: Context) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                APP_SCHEDULER_CHANNEL,
+                "App Scheduler",
+                NotificationManager.IMPORTANCE_LOW
+            )
+            val notificationManager = context.getSystemService(NotificationManager::class.java)
+            notificationManager?.createNotificationChannel(channel)
+        }
     }
 }
+

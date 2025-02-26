@@ -1,4 +1,4 @@
-package com.peal.appscheduler.utils
+package com.peal.appscheduler.ui.utils
 
 import android.graphics.Bitmap
 import android.graphics.Canvas

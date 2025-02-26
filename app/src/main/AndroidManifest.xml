@@ -31,9 +31,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <receiver android:name=".ui.AppSchedulerReceiver" android:exported="true"
+        <receiver android:name=".receiver.AppSchedulerReceiver" android:exported="true"
             android:permission="android.permission.RECEIVE_BOOT_COMPLETED" />
-        <service android:name=".ui.AppLaunchService"
+        <service android:name=".service.AppLaunchService"
             android:foregroundServiceType="specialUse"
             android:exported="false"/>
 
