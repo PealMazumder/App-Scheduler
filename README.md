@@ -24,7 +24,6 @@ This Android application allows users to schedule any installed app to start at 
 - **Dagger Hilt**
 - **Kotlin Coroutines & Flow**
 - **Desugar JDK Libs**
-- **Unit Testing**
 
 ---
 
