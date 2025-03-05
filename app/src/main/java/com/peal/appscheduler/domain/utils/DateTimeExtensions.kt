@@ -27,20 +27,24 @@ fun LocalTime.toFormattedTime(pattern: String = TIME_12H): String {
 }
 
 fun Long.formatScheduledTime(
-    pattern: String = MMMM_DD_YYYY_TIME_12H
+    pattern: String = MMMM_DD_YYYY_TIME_12H, zoneId: ZoneId = ZoneId.systemDefault()
 ): String {
-    val formatter = DateTimeFormatter.ofPattern(pattern)
-        .withZone(ZoneId.systemDefault())
-    val instant = Instant.ofEpochMilli(this)
-    return formatter.format(instant)
+    return try {
+        val formatter = DateTimeFormatter.ofPattern(pattern).withZone(zoneId)
+        val instant = Instant.ofEpochMilli(this)
+        return formatter.format(instant)
+    } catch (e: Exception) {
+        e.printStackTrace()
+        this.toString()
+    }
+
 }
 
 fun Long.toFormattedPattern(
-    toPattern: String = MMMM_DD_YYYY,
+    toPattern: String = MMMM_DD_YYYY, zoneId: ZoneId = ZoneId.systemDefault()
 ): String {
     return try {
-        val zonedDateTime = Instant.ofEpochMilli(this)
-            .atZone(ZoneId.of("UTC"))
+        val zonedDateTime = Instant.ofEpochMilli(this).atZone(zoneId)
 
         val formatter = DateTimeFormatter.ofPattern(toPattern, Locale.getDefault())
         zonedDateTime.format(formatter)
