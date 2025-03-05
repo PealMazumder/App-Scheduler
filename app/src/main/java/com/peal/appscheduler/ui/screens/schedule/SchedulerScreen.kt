@@ -1,5 +1,11 @@
 package com.peal.appscheduler.ui.screens.schedule
 
+import android.app.AlarmManager
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
+import android.os.Build
+import android.provider.Settings
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -17,6 +23,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -25,6 +32,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -32,6 +40,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.peal.appscheduler.R
 import com.peal.appscheduler.domain.model.DeviceAppInfo
+import com.peal.appscheduler.ui.screens.components.CommonAlertDialog
 import com.peal.appscheduler.ui.screens.components.CommonCircularProgressIndicator
 import com.peal.appscheduler.ui.screens.components.DatePickerDialog
 import com.peal.appscheduler.ui.screens.components.TimePickerDialog
@@ -51,8 +60,31 @@ fun SchedulerScreen(
     state: SchedulerScreenState,
     onIntent: (SchedulerScreenIntent) -> Unit = {},
 ) {
+    val context = LocalContext.current
     var showDatePicker by rememberSaveable { mutableStateOf(false) }
     var showTimePicker by rememberSaveable { mutableStateOf(false) }
+    val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+
+    var showPermissionDialog by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !alarmManager.canScheduleExactAlarms()) {
+            showPermissionDialog = true
+        }
+    }
+
+    if (showPermissionDialog) {
+        CommonAlertDialog(
+            title = stringResource(R.string.permission_required),
+            message = stringResource(R.string.this_app_needs_permission_to_schedule_exact_alarms),
+            confirmText = stringResource(R.string.grant_permission),
+            onConfirm = {
+                openScheduleExactAlarmPermissionSettings(context)
+                showPermissionDialog = false
+            },
+            onDismiss = { showPermissionDialog = false }
+        )
+    }
 
     Column(
         modifier = modifier
@@ -191,6 +223,19 @@ private fun ActionButtons(
             )
         ) {
             Text(stringResource(R.string.save))
+        }
+    }
+}
+
+
+fun openScheduleExactAlarmPermissionSettings(context: Context) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        if (!alarmManager.canScheduleExactAlarms()) {
+            val intent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM).apply {
+                data = Uri.parse("package:${context.packageName}")
+            }
+            context.startActivity(intent)
         }
     }
 }

@@ -10,4 +10,5 @@
     <string name="permission_required">Permission Required</string>
     <string name="this_app_needs_permission_to_display_over_other_apps">This app needs permission to display over other apps.</string>
     <string name="grant_permission">Grant Permission</string>
+    <string name="this_app_needs_permission_to_schedule_exact_alarms">This app needs permission to schedule exact alarms.</string>
 </resources>
