@@ -10,10 +10,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -29,6 +26,7 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.compose.rememberNavController
 import com.peal.appscheduler.ui.navigation.NavGraph
+import com.peal.appscheduler.ui.screens.components.CommonAlertDialog
 import com.peal.appscheduler.ui.theme.AppSchedulerTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -71,18 +69,15 @@ class MainActivity : ComponentActivity() {
 
     @Composable
     fun OverlayPermissionDialog(context: Context, onDismiss: () -> Unit) {
-        AlertDialog(
-            onDismissRequest = onDismiss,
-            title = { Text(stringResource(R.string.permission_required)) },
-            text = { Text(stringResource(R.string.this_app_needs_permission_to_display_over_other_apps)) },
-            confirmButton = {
-                Button(onClick = {
-                    openOverlaySettings(context)
-                    onDismiss()
-                }) {
-                    Text(stringResource(R.string.grant_permission))
-                }
-            }
+        CommonAlertDialog(
+            title = stringResource(R.string.permission_required),
+            message = stringResource(R.string.this_app_needs_permission_to_display_over_other_apps),
+            confirmText = stringResource(R.string.grant_permission),
+            onConfirm = {
+                openOverlaySettings(context)
+                onDismiss()
+            },
+            onDismiss = onDismiss
         )
     }
 
@@ -94,6 +89,7 @@ class MainActivity : ComponentActivity() {
         context.startActivity(intent)
     }
 }
+
 
 
 @Preview(showBackground = true)
