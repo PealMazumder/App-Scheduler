@@ -2,11 +2,13 @@ package com.peal.appscheduler.ui.screens.schedule
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.peal.appscheduler.core.domain.util.ScheduleError
+import com.peal.appscheduler.core.domain.util.onError
+import com.peal.appscheduler.core.domain.util.onSuccess
 import com.peal.appscheduler.domain.enums.ScheduleStatus
 import com.peal.appscheduler.domain.model.AppSchedule
 import com.peal.appscheduler.domain.usecase.CancelScheduledAppUseCase
 import com.peal.appscheduler.domain.usecase.ScheduleAppUseCase
-import com.peal.appscheduler.domain.utils.ScheduleResult
 import com.peal.appscheduler.domain.utils.toFormattedDate
 import com.peal.appscheduler.domain.utils.toFormattedPattern
 import com.peal.appscheduler.domain.utils.toFormattedTime
@@ -14,9 +16,11 @@ import com.peal.appscheduler.domain.utils.toLocalDate
 import com.peal.appscheduler.domain.utils.toLocalTime
 import com.peal.appscheduler.ui.model.ScheduleAppInfoUi
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -40,6 +44,9 @@ class SchedulerViewModel @Inject constructor(
 
     private var selectedDate: LocalDate? = null
     private var selectedTime: LocalTime? = null
+
+    private val _events = Channel<SchedulerScreenEvent>()
+    val events = _events.receiveAsFlow()
 
     private var previousScheduleTimeInMilli: Long? = null
 
@@ -110,6 +117,20 @@ class SchedulerViewModel @Inject constructor(
                     date.atTime(time).atZone(ZoneId.systemDefault()).toInstant()
                         .toEpochMilli()
 
+                if (scheduledTime == previousScheduleTimeInMilli) {
+                    _schedulerScreenState.update { it.copy(isLoading = false) }
+                    viewModelScope.launch {
+                        _events.send(SchedulerScreenEvent.PreviousDateTime)
+                    }
+                    return
+                } else if (scheduledTime < System.currentTimeMillis()) {
+                    _schedulerScreenState.update { it.copy(isLoading = false) }
+                    viewModelScope.launch {
+                        _events.send(SchedulerScreenEvent.PastDateTime)
+                    }
+                    return
+                }
+
                 viewModelScope.launch {
                     delay(500)
                     scheduleAppUseCase.invoke(
@@ -122,32 +143,29 @@ class SchedulerViewModel @Inject constructor(
                         ),
                         edit
                     ).let { result ->
-                        when (result) {
-                            is ScheduleResult.Success -> {
-                                _schedulerScreenState.update {
-                                    it.copy(
-                                        isLoading = false,
-                                        message = "App scheduled successfully"
-                                    )
+                        result.onSuccess {
+                            previousScheduleTimeInMilli = scheduledTime
+                            _schedulerScreenState.update { it.copy(isLoading = false) }
+                            _events.send(SchedulerScreenEvent.AppScheduled)
+                        }.onError {
+                            _schedulerScreenState.update { it.copy(isLoading = false) }
+                            when (it) {
+                                ScheduleError.TIME_CONFLICT -> {
+                                    _events.send(SchedulerScreenEvent.TimeConflict)
                                 }
 
-                                previousScheduleTimeInMilli = scheduledTime
-                            }
-
-                            is ScheduleResult.Error -> {
-                                _schedulerScreenState.update {
-                                    it.copy(isLoading = false, message = result.message)
+                                else -> {
+                                    _events.send(SchedulerScreenEvent.UnknownError)
                                 }
                             }
+
                         }
                     }
                 }
             } else {
-                _schedulerScreenState.update {
-                    it.copy(
-                        isLoading = false,
-                        message = "Please select both date and time for scheduling."
-                    )
+                _schedulerScreenState.update { it.copy(isLoading = false) }
+                viewModelScope.launch {
+                    _events.send(SchedulerScreenEvent.MissingDateTime)
                 }
             }
         }

@@ -1,9 +1,12 @@
 package com.peal.appscheduler.domain.usecase
 
+import com.peal.appscheduler.core.domain.util.ScheduleError
 import com.peal.appscheduler.domain.model.AppSchedule
 import com.peal.appscheduler.domain.repository.AlarmManagerRepository
 import com.peal.appscheduler.domain.repository.ScheduleRepository
-import com.peal.appscheduler.domain.utils.ScheduleResult
+import com.peal.appscheduler.core.domain.util.Result
+import com.peal.appscheduler.core.domain.util.onError
+import com.peal.appscheduler.core.domain.util.onSuccess
 import javax.inject.Inject
 
 
@@ -15,33 +18,36 @@ class ScheduleAppUseCase @Inject constructor(
     private val scheduleRepository: ScheduleRepository,
     private val alarmManagerRepository: AlarmManagerRepository,
 ) {
-    suspend operator fun invoke(schedule: AppSchedule, isEdit: Boolean): ScheduleResult<Long> =
-        runCatching {
-            // TODO: Handle past time and time conflict scenario
-            var scheduleId: Long = schedule.id
-            try {
-                if (isEdit) {
-                    alarmManagerRepository.updateSchedule(
-                        schedule.packageName,
-                        schedule.scheduledTime,
-                        scheduleId
-                    )
-                    scheduleRepository.updateSchedule(schedule)
-                } else {
-                    scheduleId = scheduleRepository.addSchedule(schedule)
-                    alarmManagerRepository.scheduleApp(
-                        schedule.packageName,
-                        schedule.scheduledTime,
-                        scheduleId
-                    )
+    suspend operator fun invoke(
+        schedule: AppSchedule,
+        isEdit: Boolean
+    ): Result<Long, ScheduleError> {
+        return runCatching {
+            val scheduleId: Long = schedule.id
 
-                }
-
-                ScheduleResult.Success(scheduleId)
-            } catch (e: Exception) {
-                ScheduleResult.Error(e.localizedMessage ?: "Unknown error")
+            if (isEdit) {
+                alarmManagerRepository.updateSchedule(
+                    schedule.packageName,
+                    schedule.scheduledTime,
+                    scheduleId
+                )
+                scheduleRepository.updateSchedule(schedule)
+                Result.Success(scheduleId)
+            } else {
+                scheduleRepository.addSchedule(schedule)
+                    .onSuccess { id ->
+                        alarmManagerRepository.scheduleApp(
+                            schedule.packageName,
+                            schedule.scheduledTime,
+                            id
+                        )
+                    }.onError {
+                        Result.Failure(it)
+                    }
             }
-        }.getOrElse { exception ->
-            ScheduleResult.Error(exception.localizedMessage ?: "Unknown error")
+        }.getOrElse { _ ->
+            Result.Failure(ScheduleError.UNKNOWN_ERROR)
         }
+    }
 }
+

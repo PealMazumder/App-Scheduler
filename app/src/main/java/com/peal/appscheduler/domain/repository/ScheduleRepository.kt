@@ -2,6 +2,8 @@ package com.peal.appscheduler.domain.repository
 
 import com.peal.appscheduler.domain.model.AppSchedule
 import kotlinx.coroutines.flow.Flow
+import com.peal.appscheduler.core.domain.util.Result
+import com.peal.appscheduler.core.domain.util.ScheduleError
 
 
 /**
@@ -9,7 +11,7 @@ import kotlinx.coroutines.flow.Flow
  */
 
 interface ScheduleRepository {
-    suspend fun addSchedule(schedule: AppSchedule): Long
+    suspend fun addSchedule(schedule: AppSchedule): Result<Long, ScheduleError>
 
     fun getAllScheduledApps(): Flow<List<AppSchedule>>
 

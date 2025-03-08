@@ -82,6 +82,7 @@ fun NavGraph(
             SchedulerScreen(
                 modifier,
                 schedulerScreenState,
+                schedulerViewModel.events,
                 onIntent = { schedulerViewModel.handleIntent(it) }
             )
         }

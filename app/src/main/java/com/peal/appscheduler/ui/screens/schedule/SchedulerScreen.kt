@@ -2,6 +2,7 @@ package com.peal.appscheduler.ui.screens.schedule
 
 import android.app.AlarmManager
 import android.content.Context
+import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -38,6 +39,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.peal.appscheduler.R
+import com.peal.appscheduler.core.presentation.util.ObserveAsEvents
 import com.peal.appscheduler.domain.enums.ScheduleStatus
 import com.peal.appscheduler.domain.mappers.toDeviceAppInfo
 import com.peal.appscheduler.domain.utils.isAndroidTIRAMISUOrLater
@@ -49,6 +51,8 @@ import com.peal.appscheduler.ui.screens.components.TimePickerDialog
 import com.peal.appscheduler.ui.screens.deviceApps.InstalledAppItem
 import com.peal.appscheduler.ui.utils.debounce
 import com.peal.appscheduler.ui.utils.openScheduleExactAlarmPermissionSettings
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import java.time.LocalDate
 import java.time.LocalTime
 
@@ -61,6 +65,7 @@ import java.time.LocalTime
 fun SchedulerScreen(
     modifier: Modifier = Modifier,
     state: SchedulerScreenState,
+    event: Flow<SchedulerScreenEvent>,
     onIntent: (SchedulerScreenIntent) -> Unit = {},
 ) {
     val context = LocalContext.current
@@ -85,6 +90,8 @@ fun SchedulerScreen(
             lifecycleOwner.lifecycle.removeObserver(observer)
         }
     }
+
+    HandleSchedulerEvents(events = event, context = context)
 
     if (showPermissionDialog) {
         CommonAlertDialog(
@@ -242,6 +249,66 @@ private fun ActionButtons(
 
 
 
+@Composable
+private fun HandleSchedulerEvents(
+    events: Flow<SchedulerScreenEvent>,
+    context: Context
+) {
+    ObserveAsEvents(events = events) { event ->
+        when (event) {
+            is SchedulerScreenEvent.AppScheduled -> {
+                Toast.makeText(
+                    context,
+                    context.getString(R.string.app_scheduled_successfully),
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+
+            is SchedulerScreenEvent.TimeConflict -> {
+                Toast.makeText(
+                    context,
+                    context.getString(R.string.an_app_is_already_scheduled_at_this_time),
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+
+            is SchedulerScreenEvent.UnknownError -> {
+                Toast.makeText(
+                    context,
+                    context.getString(R.string.an_unexpected_error_occurred_please_try_again),
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+
+            is SchedulerScreenEvent.MissingDateTime -> {
+                Toast.makeText(
+                    context,
+                    context.getString(R.string.select_both_date_and_time_to_schedule),
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+
+            is SchedulerScreenEvent.PastDateTime -> {
+                Toast.makeText(
+                    context,
+                    context.getString(R.string.please_select_a_future_date_and_time),
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+
+            is SchedulerScreenEvent.PreviousDateTime -> {
+                Toast.makeText(
+                    context,
+                    context.getString(R.string.select_another_future_date_and_time),
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+    }
+}
+
+
+
 
 @Preview(showBackground = true)
 @Composable
@@ -258,6 +325,7 @@ fun SchedulerScreenPreview() {
             selectedDate = LocalDate.now().toString(),
             selectedTime = LocalTime.now().toString()
         ),
+        event = flow {  },
     )
 }
 
