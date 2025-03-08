@@ -47,7 +47,7 @@ class SchedulerViewModel @Inject constructor(
         _schedulerScreenState.update {
             it.copy(
                 scheduledAppInfo = scheduleAppInfo,
-                isEdit = scheduleAppInfo?.utcScheduleTime != null
+                isEditable = scheduleAppInfo?.utcScheduleTime != null
             )
         }
 
@@ -67,7 +67,7 @@ class SchedulerViewModel @Inject constructor(
     fun handleIntent(intent: SchedulerScreenIntent) {
         when (intent) {
             is SchedulerScreenIntent.ScheduleApp -> {
-                insertSchedule(schedulerScreenState.value.isEdit)
+                insertSchedule(schedulerScreenState.value.isEditable)
             }
 
             is SchedulerScreenIntent.OnDateSelected -> {

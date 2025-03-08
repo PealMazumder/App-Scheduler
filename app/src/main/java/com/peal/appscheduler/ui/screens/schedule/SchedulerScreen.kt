@@ -2,10 +2,6 @@ package com.peal.appscheduler.ui.screens.schedule
 
 import android.app.AlarmManager
 import android.content.Context
-import android.content.Intent
-import android.net.Uri
-import android.os.Build
-import android.provider.Settings
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -23,7 +19,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -38,9 +34,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.peal.appscheduler.R
 import com.peal.appscheduler.domain.enums.ScheduleStatus
 import com.peal.appscheduler.domain.mappers.toDeviceAppInfo
+import com.peal.appscheduler.domain.utils.isAndroidTIRAMISUOrLater
 import com.peal.appscheduler.ui.model.ScheduleAppInfoUi
 import com.peal.appscheduler.ui.screens.components.CommonAlertDialog
 import com.peal.appscheduler.ui.screens.components.CommonCircularProgressIndicator
@@ -48,6 +48,7 @@ import com.peal.appscheduler.ui.screens.components.DatePickerDialog
 import com.peal.appscheduler.ui.screens.components.TimePickerDialog
 import com.peal.appscheduler.ui.screens.deviceApps.InstalledAppItem
 import com.peal.appscheduler.ui.utils.debounce
+import com.peal.appscheduler.ui.utils.openScheduleExactAlarmPermissionSettings
 import java.time.LocalDate
 import java.time.LocalTime
 
@@ -68,10 +69,20 @@ fun SchedulerScreen(
     val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
     var showPermissionDialog by remember { mutableStateOf(false) }
+    val lifecycleOwner = LocalLifecycleOwner.current
 
-    LaunchedEffect(Unit) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !alarmManager.canScheduleExactAlarms()) {
-            showPermissionDialog = true
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                if (isAndroidTIRAMISUOrLater() && !alarmManager.canScheduleExactAlarms()) {
+                    showPermissionDialog = true
+                }
+            }
+        }
+
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
         }
     }
 
@@ -81,7 +92,7 @@ fun SchedulerScreen(
             message = stringResource(R.string.this_app_needs_permission_to_schedule_exact_alarms),
             confirmText = stringResource(R.string.grant_permission),
             onConfirm = {
-                openScheduleExactAlarmPermissionSettings(context)
+                context.openScheduleExactAlarmPermissionSettings()
                 showPermissionDialog = false
             },
             onDismiss = { showPermissionDialog = false }
@@ -205,7 +216,7 @@ private fun ActionButtons(
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        if (state.isEdit && state.scheduledAppInfo?.status == ScheduleStatus.SCHEDULED.name) {
+        if (state.isEditable && state.scheduledAppInfo?.status == ScheduleStatus.SCHEDULED.name) {
             Button(
                 onClick = debouncedCancel,
                 colors = ButtonDefaults.buttonColors(
@@ -230,17 +241,6 @@ private fun ActionButtons(
 }
 
 
-fun openScheduleExactAlarmPermissionSettings(context: Context) {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        if (!alarmManager.canScheduleExactAlarms()) {
-            val intent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM).apply {
-                data = Uri.parse("package:${context.packageName}")
-            }
-            context.startActivity(intent)
-        }
-    }
-}
 
 
 @Preview(showBackground = true)
