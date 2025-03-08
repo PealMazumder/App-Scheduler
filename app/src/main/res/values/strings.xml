@@ -11,4 +11,13 @@
     <string name="this_app_needs_permission_to_display_over_other_apps">This app needs permission to display over other apps.</string>
     <string name="grant_permission">Grant Permission</string>
     <string name="this_app_needs_permission_to_schedule_exact_alarms">This app needs permission to schedule exact alarms.</string>
+    <string name="channel_for_app_launch_notifications">Channel for app launch notifications</string>
+    <string name="app_scheduler">App Scheduler</string>
+    <string name="failed_to_launch_app">Failed to launch app: %1$s</string>
+    <string name="launch_failed">Launch Failed</string>
+    <string name="app_not_installed">App Not Installed</string>
+    <string name="is_not_installed_on_this_device">%1$s is not installed on this device.</string>
+    <string name="launching_scheduled_app">Launching Scheduled App</string>
+    <string name="processing_request">Processing request...</string>
+    <string name="could_not_be_started">%1$s could not be started.</string>
 </resources>
