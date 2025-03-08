@@ -39,7 +39,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.peal.appscheduler.R
-import com.peal.appscheduler.domain.model.DeviceAppInfo
+import com.peal.appscheduler.domain.enums.ScheduleStatus
+import com.peal.appscheduler.domain.mappers.toDeviceAppInfo
+import com.peal.appscheduler.ui.model.ScheduleAppInfoUi
 import com.peal.appscheduler.ui.screens.components.CommonAlertDialog
 import com.peal.appscheduler.ui.screens.components.CommonCircularProgressIndicator
 import com.peal.appscheduler.ui.screens.components.DatePickerDialog
@@ -94,7 +96,7 @@ fun SchedulerScreen(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
 
-        AppSection(state.appInfo)
+        AppSection(state.scheduledAppInfo)
 
         Text(
             text = stringResource(R.string.scheduling),
@@ -176,15 +178,15 @@ fun SchedulerScreen(
 
 
 @Composable
-private fun AppSection(appInfo: DeviceAppInfo?) {
-    appInfo?.let {
+private fun AppSection(scheduleAppInfo: ScheduleAppInfoUi?) {
+    scheduleAppInfo?.let {
         Text(
             text = stringResource(R.string.app),
             style = MaterialTheme.typography.titleMedium,
             textAlign = TextAlign.Start
         )
 
-        InstalledAppItem(app = it)
+        InstalledAppItem(app = scheduleAppInfo.toDeviceAppInfo())
     }
 }
 
@@ -203,7 +205,7 @@ private fun ActionButtons(
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        if (state.isEdit) {
+        if (state.isEdit && state.scheduledAppInfo?.status == ScheduleStatus.SCHEDULED.name) {
             Button(
                 onClick = debouncedCancel,
                 colors = ButtonDefaults.buttonColors(
@@ -246,10 +248,12 @@ fun openScheduleExactAlarmPermissionSettings(context: Context) {
 fun SchedulerScreenPreview() {
     SchedulerScreen(
         state = SchedulerScreenState(
-            appInfo = DeviceAppInfo(
+            scheduledAppInfo = ScheduleAppInfoUi(
                 name = "Sample App",
                 packageName = "com.example.app",
-                icon = null
+                icon = null,
+                status = ScheduleStatus.SCHEDULED.name,
+                id = 1
             ),
             selectedDate = LocalDate.now().toString(),
             selectedTime = LocalTime.now().toString()

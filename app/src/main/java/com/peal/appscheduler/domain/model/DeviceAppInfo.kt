@@ -1,6 +1,7 @@
 package com.peal.appscheduler.domain.model
 
 import android.graphics.drawable.Drawable
+import com.peal.appscheduler.ui.model.ScheduleAppInfoUi
 
 
 /**
@@ -12,4 +13,13 @@ data class DeviceAppInfo(
     val name: String,
     val packageName: String,
     val icon: Drawable?,
-)
+) {
+    fun toScheduleAppInfoUI(): ScheduleAppInfoUi {
+        return ScheduleAppInfoUi(
+            id = this.id,
+            name = this.name,
+            packageName = this.packageName,
+            icon = this.icon,
+        )
+    }
+}

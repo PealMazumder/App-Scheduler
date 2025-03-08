@@ -1,6 +1,7 @@
 package com.peal.appscheduler.ui.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -9,7 +10,6 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.peal.appscheduler.domain.mappers.toDeviceAppInfo
 import com.peal.appscheduler.ui.screens.deviceApps.DeviceAppsListScreen
 import com.peal.appscheduler.ui.screens.deviceApps.DeviceAppsNavigationEvent
 import com.peal.appscheduler.ui.screens.deviceApps.DeviceAppsViewModel
@@ -46,8 +46,7 @@ fun NavGraph(
                 homeScreenState,
                 onNavigationEvent = { event ->
                     if (event is HomeNavigationEvent.OnNavigateScheduledApps) {
-                        sharedViewModel.setSelectedAppInfo(event.appInfo.toDeviceAppInfo())
-                        sharedViewModel.setScheduledDateAndTime(event.appInfo.utcScheduleTime)
+                        sharedViewModel.setSelectedAppInfo(event.appInfo)
                     }
                     navigation.onNavigation(event)
                 }
@@ -63,7 +62,7 @@ fun NavGraph(
                 deviceAppsScreenState,
                 onNavigationEvent = { event ->
                     if (event is DeviceAppsNavigationEvent.OnNavigateScheduler) {
-                        sharedViewModel.setSelectedAppInfo(event.data)
+                        sharedViewModel.setSelectedAppInfo(event.data.toScheduleAppInfoUI())
                     }
                     navigation.onNavigation(event)
                 }
@@ -72,15 +71,14 @@ fun NavGraph(
 
         composable<Screens.AppSchedulerScreen> {
             val schedulerViewModel: SchedulerViewModel = hiltViewModel()
-
-            schedulerViewModel.updateAppInfo(sharedViewModel.appInfo)
-            sharedViewModel.scheduleTimeUtc?.let { it1 ->
-                schedulerViewModel.updateScheduleTime(it1)
-                schedulerViewModel.setEditState(true)
-                sharedViewModel.clearScheduleTimeData()
-
-            }
             val schedulerScreenState by schedulerViewModel.schedulerScreenState.collectAsStateWithLifecycle()
+            val appScheduleInfo by sharedViewModel.appScheduleInfo.collectAsStateWithLifecycle()
+
+            LaunchedEffect(appScheduleInfo) {
+                appScheduleInfo?.let {
+                    schedulerViewModel.updateAppInfo(it)
+                }
+            }
             SchedulerScreen(
                 modifier,
                 schedulerScreenState,

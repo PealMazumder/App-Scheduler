@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.peal.appscheduler.domain.enums.ScheduleStatus
 import com.peal.appscheduler.domain.model.AppSchedule
-import com.peal.appscheduler.domain.model.DeviceAppInfo
 import com.peal.appscheduler.domain.usecase.CancelScheduledAppUseCase
 import com.peal.appscheduler.domain.usecase.ScheduleAppUseCase
 import com.peal.appscheduler.domain.utils.ScheduleResult
@@ -13,6 +12,7 @@ import com.peal.appscheduler.domain.utils.toFormattedPattern
 import com.peal.appscheduler.domain.utils.toFormattedTime
 import com.peal.appscheduler.domain.utils.toLocalDate
 import com.peal.appscheduler.domain.utils.toLocalTime
+import com.peal.appscheduler.ui.model.ScheduleAppInfoUi
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -43,22 +43,25 @@ class SchedulerViewModel @Inject constructor(
 
     private var previousScheduleTimeInMilli: Long? = null
 
-    fun updateAppInfo(appInfo: DeviceAppInfo?) {
-        _schedulerScreenState.update { it.copy(appInfo = appInfo) }
+    fun updateAppInfo(scheduleAppInfo: ScheduleAppInfoUi?) {
+        _schedulerScreenState.update {
+            it.copy(
+                scheduledAppInfo = scheduleAppInfo,
+                isEdit = scheduleAppInfo?.utcScheduleTime != null
+            )
+        }
+
+        updateScheduleTime(scheduleAppInfo?.utcScheduleTime)
     }
 
-    fun updateScheduleTime(time: Long) {
+    private fun updateScheduleTime(time: Long?) {
         previousScheduleTimeInMilli = time
         _schedulerScreenState.update {
             it.copy(
-                selectedDate = time.toFormattedPattern(),
-                selectedTime = time.toFormattedPattern(toPattern = "hh:mm a")
+                selectedDate = time?.toFormattedPattern(),
+                selectedTime = time?.toFormattedPattern(toPattern = "hh:mm a")
             )
         }
-    }
-
-    fun setEditState(editState: Boolean) {
-        _schedulerScreenState.update { it.copy(isEdit = editState) }
     }
 
     fun handleIntent(intent: SchedulerScreenIntent) {
@@ -83,7 +86,7 @@ class SchedulerViewModel @Inject constructor(
                 viewModelScope.launch {
                     _schedulerScreenState.update { it.copy(isLoading = true) }
                     delay(500)
-                    schedulerScreenState.value.appInfo?.let { appInfo ->
+                    schedulerScreenState.value.scheduledAppInfo?.let { appInfo ->
                         cancelScheduledAppUseCase.invoke(appInfo.packageName, appInfo.id)
                     }
 
@@ -95,7 +98,7 @@ class SchedulerViewModel @Inject constructor(
 
 
     private fun insertSchedule(edit: Boolean) {
-        schedulerScreenState.value.appInfo?.let { appInfo ->
+        schedulerScreenState.value.scheduledAppInfo?.let { appInfo ->
             val date = selectedDate ?: _schedulerScreenState.value.selectedDate?.toLocalDate()
             val time = selectedTime ?: _schedulerScreenState.value.selectedTime?.toLocalTime()
 
