@@ -91,13 +91,35 @@ class SchedulerViewModel @Inject constructor(
 
             is SchedulerScreenIntent.CancelSchedule -> {
                 viewModelScope.launch {
+                    val scheduleTime = schedulerScreenState.value.scheduledAppInfo?.utcScheduleTime
                     _schedulerScreenState.update { it.copy(isLoading = true) }
-                    delay(500)
                     schedulerScreenState.value.scheduledAppInfo?.let { appInfo ->
-                        cancelScheduledAppUseCase.invoke(appInfo.packageName, appInfo.id)
-                    }
+                        cancelScheduledAppUseCase.invoke(
+                            appInfo.packageName,
+                            appInfo.id,
+                            scheduleTime
+                        ).let { result ->
+                            delay(500)
+                            result.onSuccess {
+                                _schedulerScreenState.update { it.copy(isLoading = false) }
+                                viewModelScope.launch {
+                                    _events.send(SchedulerScreenEvent.ScheduleCancelled)
+                                }
+                            }
+                            result.onError { error ->
+                                _schedulerScreenState.update { it.copy(isLoading = false) }
+                                viewModelScope.launch {
+                                    when (error) {
+                                        ScheduleError.ALREADY_HANDLED -> _events.send(
+                                            SchedulerScreenEvent.ScheduleAlreadyHandled
+                                        )
 
-                    _schedulerScreenState.update { it.copy(isLoading = false) }
+                                        else -> _events.send(SchedulerScreenEvent.UnknownError)
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }

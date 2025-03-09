@@ -12,4 +12,6 @@ sealed class SchedulerScreenEvent {
     data object MissingDateTime : SchedulerScreenEvent()
     data object PastDateTime : SchedulerScreenEvent()
     data object PreviousDateTime : SchedulerScreenEvent()
+    data object ScheduleAlreadyHandled : SchedulerScreenEvent()
+    data object ScheduleCancelled : SchedulerScreenEvent()
 }

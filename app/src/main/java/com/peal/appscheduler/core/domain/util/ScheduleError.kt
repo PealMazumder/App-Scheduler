@@ -7,4 +7,6 @@ package com.peal.appscheduler.core.domain.util
 enum class ScheduleError: Error {
     TIME_CONFLICT,
     UNKNOWN_ERROR,
+    ALREADY_HANDLED,
+    DATABASE_ERROR,
 }

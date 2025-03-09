@@ -27,4 +27,6 @@
     <string name="select_both_date_and_time_to_schedule">Select both date and time to schedule.</string>
     <string name="please_select_a_future_date_and_time">Please select a future date and time.</string>
     <string name="select_another_future_date_and_time">Select another future date and time.</string>
+    <string name="schedule_cancelled_successfully">Schedule cancelled successfully</string>
+    <string name="ah_schedule_already_handled">Ah! Schedule already handled</string>
 </resources>

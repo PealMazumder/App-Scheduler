@@ -248,7 +248,6 @@ private fun ActionButtons(
 }
 
 
-
 @Composable
 private fun HandleSchedulerEvents(
     events: Flow<SchedulerScreenEvent>,
@@ -300,6 +299,22 @@ private fun HandleSchedulerEvents(
                 Toast.makeText(
                     context,
                     context.getString(R.string.select_another_future_date_and_time),
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+
+            is SchedulerScreenEvent.ScheduleCancelled -> {
+                Toast.makeText(
+                    context,
+                    context.getString(R.string.schedule_cancelled_successfully),
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+
+            is SchedulerScreenEvent.ScheduleAlreadyHandled -> {
+                Toast.makeText(
+                    context,
+                    context.getString(R.string.ah_schedule_already_handled),
                     Toast.LENGTH_SHORT
                 ).show()
             }
