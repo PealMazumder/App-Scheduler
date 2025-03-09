@@ -11,6 +11,7 @@ This Android application allows users to schedule any installed app to start at 
 - **Modify Schedule** – Users can change the time of an already scheduled app launch.
 - **Multiple Schedules** – The app supports multiple schedules without conflicts, ensuring smooth and efficient scheduling.
 - **Schedule History** – A record is kept of each schedule.
+- **Reschedule Apps on Boot** – If the device restarts, the app will automatically restore and reschedule any pending app launches to ensure they run as planned without user intervention.
 
 ---
 
@@ -67,7 +68,9 @@ This Android application allows users to schedule any installed app to start at 
 ```
 
 ### **<u>ScreenShots</u>**
-<p align="center"> <img src="img.png" alt="Screenshot 1" width="24%"/> <img src="img_1.png" alt="Screenshot 2" width="24%"/> <img src="img_2.png" alt="Screenshot 3" width="24%"/> <img src="img_3.png" alt="Screenshot 4" width="24%"/> </p>
+<p align="center"> <img src="screenshots/img1.png" alt="Screenshot 1" width="24%"/> <img src="screenshots/img2.png" alt="Screenshot 2" width="24%"/> <img src="screenshots/img3.png" alt="Screenshot 3" width="24%"/> </p>
 
 
+### **Demo Video link**
+[Watch Demo Video](https://drive.google.com/file/d/1DuLzio6waWi4rietamQvxkGViri4b7dE/view?usp=sharing)
 
