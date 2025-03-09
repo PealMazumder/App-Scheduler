@@ -30,6 +30,7 @@ class AlarmManagerWrapper @Inject constructor(
             }
 
             val intent = Intent(context, AppSchedulerReceiver::class.java).apply {
+                action = "com.peal.ACTION_SCHEDULE_APP"
                 putExtra(EXTRA_PACKAGE_NAME, packageName)
                 putExtra(EXTRA_SCHEDULE_ID, scheduleId)
             }

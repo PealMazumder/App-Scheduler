@@ -92,6 +92,7 @@ class AppLaunchService : Service() {
             if (status) ScheduleStatus.EXECUTED else ScheduleStatus.FAILED
         )
 
+        stopSelf()
         return START_NOT_STICKY
     }
 

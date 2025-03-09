@@ -29,4 +29,6 @@
     <string name="select_another_future_date_and_time">Select another future date and time.</string>
     <string name="schedule_cancelled_successfully">Schedule cancelled successfully</string>
     <string name="ah_schedule_already_handled">Ah! Schedule already handled</string>
+    <string name="rescheduling_apps">Rescheduling Apps</string>
+    <string name="your_app_is_rescheduling_scheduled_tasks">Your app is rescheduling scheduled tasks.</string>
 </resources>

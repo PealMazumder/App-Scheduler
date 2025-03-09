@@ -18,4 +18,6 @@ interface ScheduleRepository {
     suspend fun updateSchedule(newSchedule: AppSchedule)
 
     suspend fun updateScheduleStatus(id: Long, status: String)
+
+    fun getScheduledAppsToReschedule(status: String): Flow<List<AppSchedule>>
 }

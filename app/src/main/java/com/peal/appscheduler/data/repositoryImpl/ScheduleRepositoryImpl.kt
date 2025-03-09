@@ -44,4 +44,12 @@ class ScheduleRepositoryImpl @Inject constructor(
     override suspend fun updateScheduleStatus(id: Long, status: String) {
         scheduleDao.updateStatus(id, status)
     }
+
+    override fun getScheduledAppsToReschedule(
+        status: String,
+    ): Flow<List<AppSchedule>> {
+        return scheduleDao.getScheduledAppsToReschedule(status).map { list ->
+            list.map { it.toAppSchedule() }
+        }
+    }
 }

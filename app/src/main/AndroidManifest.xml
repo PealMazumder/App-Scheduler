@@ -7,6 +7,7 @@
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SYSTEM_EXEMPTED"/>
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
 
 
@@ -32,11 +33,20 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <receiver android:name=".receiver.AppSchedulerReceiver" android:exported="true"
-            android:permission="android.permission.RECEIVE_BOOT_COMPLETED" />
+        <receiver android:name=".receiver.AppSchedulerReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </receiver>
+
         <service android:name=".service.AppLaunchService"
             android:foregroundServiceType="systemExempted"
             android:exported="false"/>
+
+        <service android:name=".service.RescheduleService"
+            android:exported="false" />
 
     </application>
 

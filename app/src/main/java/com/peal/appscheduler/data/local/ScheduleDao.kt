@@ -29,4 +29,7 @@ interface ScheduleDao {
 
     @Query("SELECT COUNT(*) FROM schedules WHERE scheduledTime = :scheduledTime AND status = :status")
     suspend fun isScheduleConflicting(scheduledTime: Long, status: String): Int
+
+    @Query("SELECT * FROM schedules WHERE status = :status")
+    fun getScheduledAppsToReschedule(status: String): Flow<List<ScheduleEntity>>
 }
