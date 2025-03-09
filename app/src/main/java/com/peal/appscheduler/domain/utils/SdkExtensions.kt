@@ -10,3 +10,6 @@ import androidx.annotation.ChecksSdkIntAtLeast
 
 @ChecksSdkIntAtLeast(api = Build.VERSION_CODES.TIRAMISU)
 fun isAndroidTIRAMISUOrLater() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
+
+@ChecksSdkIntAtLeast(api = Build.VERSION_CODES.O)
+fun isAndroidOOrLater() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O

@@ -3,16 +3,15 @@ package com.peal.appscheduler.service
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Service
-import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.os.Build
 import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.peal.appscheduler.R
 import com.peal.appscheduler.domain.enums.ScheduleStatus
 import com.peal.appscheduler.domain.repository.ScheduleRepository
+import com.peal.appscheduler.domain.utils.isAndroidOOrLater
 import com.peal.appscheduler.utils.AppConstant.APP_SCHEDULER_CHANNEL
 import com.peal.appscheduler.utils.AppConstant.EXTRA_PACKAGE_NAME
 import com.peal.appscheduler.utils.AppConstant.EXTRA_SCHEDULE_ID
@@ -43,8 +42,12 @@ class AppLaunchService : Service() {
         createNotificationChannel()
         notificationBuilder = NotificationCompat.Builder(this, APP_SCHEDULER_CHANNEL)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setContentTitle(getString(R.string.launching_scheduled_app))
+            .setContentText(getString(R.string.processing_request))
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .setOngoing(true)
+
+        startForeground(notificationId, notificationBuilder!!.build())
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -58,6 +61,12 @@ class AppLaunchService : Service() {
                 getString(R.string.launching_scheduled_app),
                 getString(R.string.processing_request)
             )
+
+            updateScheduleStatus(
+                scheduleId,
+                ScheduleStatus.FAILED
+            )
+
             stopSelf()
             return START_NOT_STICKY
         }
@@ -68,29 +77,25 @@ class AppLaunchService : Service() {
                 getString(R.string.app_not_installed),
                 getString(R.string.is_not_installed_on_this_device, packageName)
             )
+            updateScheduleStatus(
+                scheduleId,
+                ScheduleStatus.FAILED
+            )
             stopSelf()
             return START_NOT_STICKY
         }
 
-        launchApp(packageName)
+        val status = launchApp(packageName)
 
-        if (scheduleId != null && scheduleId != -1L) {
-            serviceScope.launch {
-                try {
-                    scheduleRepository.updateScheduleStatus(
-                        scheduleId,
-                        ScheduleStatus.EXECUTED.name
-                    )
-                } catch (e: Exception) {
-                    Log.e("AppLaunchService", "Failed to update schedule status: ${e.message}")
-                }
-            }
-        }
+        updateScheduleStatus(
+            scheduleId,
+            if (status) ScheduleStatus.EXECUTED else ScheduleStatus.FAILED
+        )
 
         return START_NOT_STICKY
     }
 
-    private fun launchApp(packageName: String) {
+    private fun launchApp(packageName: String): Boolean {
         try {
             val launchIntent = packageManager.getLaunchIntentForPackage(packageName)
             if (launchIntent == null) {
@@ -99,16 +104,18 @@ class AppLaunchService : Service() {
                     getString(R.string.launch_failed),
                     getString(R.string.could_not_be_started, packageName)
                 )
-                return
+                return false
             }
             launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             startActivity(launchIntent)
-        } catch (e: ActivityNotFoundException) {
+            return true
+        } catch (e: Exception) {
             Log.e("AppLaunchService", getString(R.string.failed_to_launch_app, e.message))
             showNotification(
                 title = getString(R.string.launch_failed),
                 content = getString(R.string.could_not_be_started, packageName)
             )
+            return false
         }
     }
 
@@ -126,9 +133,8 @@ class AppLaunchService : Service() {
             ?.setContentText(content)
             ?.setStyle(NotificationCompat.BigTextStyle().bigText(content))
 
-        notificationBuilder?.let {
-            startForeground(notificationId, it.build())
-        }
+        val notificationManager = getSystemService(NotificationManager::class.java)
+        notificationManager?.notify(notificationId, notificationBuilder!!.build())
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
@@ -139,7 +145,7 @@ class AppLaunchService : Service() {
     }
 
     private fun createNotificationChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        if (isAndroidOOrLater()) {
             val channel = NotificationChannel(
                 APP_SCHEDULER_CHANNEL,
                 getString(R.string.app_scheduler),
@@ -149,6 +155,22 @@ class AppLaunchService : Service() {
             }
             val notificationManager = getSystemService(NotificationManager::class.java)
             notificationManager?.createNotificationChannel(channel)
+        }
+    }
+
+
+    private fun updateScheduleStatus(scheduleId: Long?, status: ScheduleStatus) {
+        if (scheduleId != null && scheduleId != -1L) {
+            serviceScope.launch {
+                try {
+                    scheduleRepository.updateScheduleStatus(
+                        scheduleId,
+                        status = status.name
+                    )
+                } catch (e: Exception) {
+                    Log.e("AppLaunchService", "Failed to update schedule status: ${e.message}")
+                }
+            }
         }
     }
 }
