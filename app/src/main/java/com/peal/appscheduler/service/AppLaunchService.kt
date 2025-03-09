@@ -67,7 +67,6 @@ class AppLaunchService : Service() {
                 ScheduleStatus.FAILED
             )
 
-            stopSelf()
             return START_NOT_STICKY
         }
 
@@ -81,7 +80,6 @@ class AppLaunchService : Service() {
                 scheduleId,
                 ScheduleStatus.FAILED
             )
-            stopSelf()
             return START_NOT_STICKY
         }
 
@@ -92,7 +90,6 @@ class AppLaunchService : Service() {
             if (status) ScheduleStatus.EXECUTED else ScheduleStatus.FAILED
         )
 
-        stopSelf()
         return START_NOT_STICKY
     }
 
@@ -170,6 +167,8 @@ class AppLaunchService : Service() {
                     )
                 } catch (e: Exception) {
                     Log.e("AppLaunchService", "Failed to update schedule status: ${e.message}")
+                } finally {
+                    stopSelf()
                 }
             }
         }
