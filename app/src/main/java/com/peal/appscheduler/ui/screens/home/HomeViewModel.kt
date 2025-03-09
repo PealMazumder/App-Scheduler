@@ -1,10 +1,12 @@
 package com.peal.appscheduler.ui.screens.home
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.peal.appscheduler.domain.mappers.toScheduleAppInfoUi
 import com.peal.appscheduler.domain.usecase.GetScheduledAppUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
@@ -20,6 +22,7 @@ import javax.inject.Inject
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val getScheduledAppUseCase: GetScheduledAppUseCase,
+    @ApplicationContext private val context: Context,
 ): ViewModel() {
     private val _homeState = MutableStateFlow(HomeScreenState())
     val homeState: StateFlow<HomeScreenState> = _homeState
@@ -34,7 +37,7 @@ class HomeViewModel @Inject constructor(
                 _homeState.update {
                     it.copy(
                         isLoading = false,
-                        scheduledApps = scheduledApps.map { it.toScheduleAppInfoUi() }
+                        scheduledApps = scheduledApps.map { it.toScheduleAppInfoUi(context) }
                     )
                 }
             }

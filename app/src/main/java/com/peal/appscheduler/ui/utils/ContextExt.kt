@@ -3,6 +3,8 @@ package com.peal.appscheduler.ui.utils
 import android.app.AlarmManager
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
@@ -22,5 +24,15 @@ fun Context.openScheduleExactAlarmPermissionSettings() {
             }
             startActivity(intent)
         }
+    }
+}
+
+fun Context.getAppIconDrawable(packageName: String): Drawable? {
+    return try {
+        val pm = packageManager
+        pm.getApplicationIcon(packageName)
+    } catch (e: PackageManager.NameNotFoundException) {
+        e.printStackTrace()
+        null
     }
 }
