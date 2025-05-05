@@ -36,21 +36,52 @@ jobs:
           TEAMS_WEBHOOK: ${{ secrets.TEAMS_WEBHOOK_URL }}
         run: |
           APK_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-          curl -H "Content-Type: application/json" \
-               -d '{
-                 "@type": "MessageCard",
-                 "@context": "http://schema.org/extensions",
-                 "summary": "Android Build",
-                 "themeColor": "0076D7",
-                 "title": "✅ New Android Build Available",
-                 "sections": [{
-                   "activityTitle": "Build completed for `${{ github.repository }}`",
-                   "facts": [
-                     {"name": "Branch", "value": "${{ github.ref_name }}"},
-                     {"name": "Commit", "value": "${{ github.sha }}"},
-                     {"name": "View Build", "value": "[Click here]('"$APK_URL"')"}
-                   ],
-                   "markdown": true
-                 }]
-               }' \
-               $TEAMS_WEBHOOK
+          PAYLOAD=$(cat <<EOF
+          {
+            "type": "message",
+            "attachments": [
+              {
+                "contentType": "application/vnd.microsoft.card.adaptive",
+                "content": {
+                  "type": "AdaptiveCard",
+                  "body": [
+                    {
+                      "type": "TextBlock",
+                      "size": "Medium",
+                      "weight": "Bolder",
+                      "text": "✅ New Android Build Available"
+                    },
+                    {
+                      "type": "FactSet",
+                      "facts": [
+                        {
+                          "title": "Repository",
+                          "value": "${{ github.repository }}"
+                        },
+                        {
+                          "title": "Branch",
+                          "value": "${{ github.ref_name }}"
+                        },
+                        {
+                          "title": "Commit",
+                          "value": "${{ github.sha }}"
+                        }
+                      ]
+                    }
+                  ],
+                  "actions": [
+                    {
+                      "type": "Action.OpenUrl",
+                      "title": "View Build",
+                      "url": "${APK_URL}"
+                    }
+                  ],
+                  "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+                  "version": "1.2"
+                }
+              }
+            ]
+          }
+          EOF
+          )
+          curl -H "Content-Type: application/json" -d "$PAYLOAD" $TEAMS_WEBHOOK
