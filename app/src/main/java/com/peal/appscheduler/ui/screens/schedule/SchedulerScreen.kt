@@ -21,6 +21,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -35,20 +36,26 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavController
 import com.peal.appscheduler.R
 import com.peal.appscheduler.core.presentation.util.ObserveAsEvents
 import com.peal.appscheduler.domain.enums.ScheduleStatus
 import com.peal.appscheduler.domain.mappers.toDeviceAppInfo
+import com.peal.appscheduler.domain.mappers.toScheduleAppInfoUi
 import com.peal.appscheduler.domain.utils.isAndroidTIRAMISUOrLater
 import com.peal.appscheduler.ui.model.ScheduleAppInfoUi
-import com.peal.appscheduler.ui.screens.components.CommonAlertDialog
-import com.peal.appscheduler.ui.screens.components.CommonCircularProgressIndicator
-import com.peal.appscheduler.ui.screens.components.DatePickerDialog
-import com.peal.appscheduler.ui.screens.components.TimePickerDialog
 import com.peal.appscheduler.ui.screens.deviceApps.InstalledAppItem
+import com.peal.appscheduler.ui.shared.components.CommonAlertDialog
+import com.peal.appscheduler.ui.shared.components.CommonCircularProgressIndicator
+import com.peal.appscheduler.ui.shared.components.DatePickerDialog
+import com.peal.appscheduler.ui.shared.components.TimePickerDialog
+import com.peal.appscheduler.ui.shared.navigation.Screens
+import com.peal.appscheduler.ui.shared.viewModel.SharedDeviceAppViewModel
 import com.peal.appscheduler.ui.utils.debounce
 import com.peal.appscheduler.ui.utils.openScheduleExactAlarmPermissionSettings
 import kotlinx.coroutines.flow.Flow
@@ -61,12 +68,45 @@ import java.time.LocalTime
  * Created by Peal Mazumder on 23/2/25.
  */
 
+
+@Composable
+fun SchedulerScreenRoute(
+    modifier: Modifier = Modifier,
+    navController: NavController,
+    route: Screens.AppSchedulerScreen,
+    schedulerViewModel: SchedulerViewModel = hiltViewModel(),
+) {
+    val schedulerScreenState by schedulerViewModel.schedulerScreenState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+
+    val appInfo = remember(route, context) {
+        route.toScheduleAppInfoUi(context)
+    }
+
+    LaunchedEffect(appInfo) {
+        schedulerViewModel.updateAppInfo(appInfo)
+    }
+
+    LaunchedEffect(appInfo) {
+        schedulerViewModel.updateAppInfo(appInfo)
+    }
+
+    SchedulerScreen(
+        modifier = modifier,
+        state = schedulerScreenState,
+        event = schedulerViewModel.effect,
+        onIntent = { intent ->
+            schedulerViewModel.handleIntent(intent)
+        }
+    )
+
+}
 @Composable
 fun SchedulerScreen(
     modifier: Modifier = Modifier,
-    state: SchedulerScreenState,
-    event: Flow<SchedulerScreenEvent>,
-    onIntent: (SchedulerScreenIntent) -> Unit = {},
+    state: ScheduleContract.State,
+    event: Flow<ScheduleContract.Effect>,
+    onIntent: (ScheduleContract.Intent) -> Unit = {},
 ) {
     val context = LocalContext.current
     var showDatePicker by rememberSaveable { mutableStateOf(false) }
@@ -160,10 +200,10 @@ fun SchedulerScreen(
 
         ActionButtons(
             onSave = {
-                onIntent.invoke(SchedulerScreenIntent.ScheduleApp)
+                onIntent.invoke(ScheduleContract.Intent.ScheduleApp)
             },
             onCancel = {
-                onIntent.invoke(SchedulerScreenIntent.CancelSchedule)
+                onIntent.invoke(ScheduleContract.Intent.CancelSchedule)
             },
             state
         )
@@ -173,7 +213,7 @@ fun SchedulerScreen(
         DatePickerDialog(
             onDismissRequest = { showDatePicker = false },
             onDateSelected = {
-                onIntent.invoke(SchedulerScreenIntent.OnDateSelected(it))
+                onIntent.invoke(ScheduleContract.Intent.OnDateSelected(it))
                 showDatePicker = false
             }
         )
@@ -183,7 +223,7 @@ fun SchedulerScreen(
         TimePickerDialog(
             onDismissRequest = { showTimePicker = false },
             onTimeSelected = {
-                onIntent.invoke(SchedulerScreenIntent.OnTimeSelected(it))
+                onIntent.invoke(ScheduleContract.Intent.OnTimeSelected(it))
                 showTimePicker = false
             }
         )
@@ -212,7 +252,7 @@ private fun AppSection(scheduleAppInfo: ScheduleAppInfoUi?) {
 private fun ActionButtons(
     onSave: () -> Unit,
     onCancel: () -> Unit,
-    state: SchedulerScreenState,
+    state: ScheduleContract.State,
 ) {
     val coroutineScope = rememberCoroutineScope()
     val debouncedSave = remember { onSave.debounce(coroutineScope) }
@@ -250,12 +290,12 @@ private fun ActionButtons(
 
 @Composable
 private fun HandleSchedulerEvents(
-    events: Flow<SchedulerScreenEvent>,
+    events: Flow<ScheduleContract.Effect>,
     context: Context
 ) {
     ObserveAsEvents(events = events) { event ->
         when (event) {
-            is SchedulerScreenEvent.AppScheduled -> {
+            is ScheduleContract.Effect.AppScheduled -> {
                 Toast.makeText(
                     context,
                     context.getString(R.string.app_scheduled_successfully),
@@ -263,7 +303,7 @@ private fun HandleSchedulerEvents(
                 ).show()
             }
 
-            is SchedulerScreenEvent.TimeConflict -> {
+            is ScheduleContract.Effect.TimeConflict -> {
                 Toast.makeText(
                     context,
                     context.getString(R.string.an_app_is_already_scheduled_at_this_time),
@@ -271,7 +311,7 @@ private fun HandleSchedulerEvents(
                 ).show()
             }
 
-            is SchedulerScreenEvent.UnknownError -> {
+            is ScheduleContract.Effect.UnknownError -> {
                 Toast.makeText(
                     context,
                     context.getString(R.string.an_unexpected_error_occurred_please_try_again),
@@ -279,7 +319,7 @@ private fun HandleSchedulerEvents(
                 ).show()
             }
 
-            is SchedulerScreenEvent.MissingDateTime -> {
+            is ScheduleContract.Effect.MissingDateTime -> {
                 Toast.makeText(
                     context,
                     context.getString(R.string.select_both_date_and_time_to_schedule),
@@ -287,7 +327,7 @@ private fun HandleSchedulerEvents(
                 ).show()
             }
 
-            is SchedulerScreenEvent.PastDateTime -> {
+            is ScheduleContract.Effect.PastDateTime -> {
                 Toast.makeText(
                     context,
                     context.getString(R.string.please_select_a_future_date_and_time),
@@ -295,7 +335,7 @@ private fun HandleSchedulerEvents(
                 ).show()
             }
 
-            is SchedulerScreenEvent.PreviousDateTime -> {
+            is ScheduleContract.Effect.PreviousDateTime -> {
                 Toast.makeText(
                     context,
                     context.getString(R.string.select_another_future_date_and_time),
@@ -303,7 +343,7 @@ private fun HandleSchedulerEvents(
                 ).show()
             }
 
-            is SchedulerScreenEvent.ScheduleCancelled -> {
+            is ScheduleContract.Effect.ScheduleCancelled -> {
                 Toast.makeText(
                     context,
                     context.getString(R.string.schedule_cancelled_successfully),
@@ -311,7 +351,7 @@ private fun HandleSchedulerEvents(
                 ).show()
             }
 
-            is SchedulerScreenEvent.ScheduleAlreadyHandled -> {
+            is ScheduleContract.Effect.ScheduleAlreadyHandled -> {
                 Toast.makeText(
                     context,
                     context.getString(R.string.ah_schedule_already_handled),
@@ -329,7 +369,7 @@ private fun HandleSchedulerEvents(
 @Composable
 fun SchedulerScreenPreview() {
     SchedulerScreen(
-        state = SchedulerScreenState(
+        state = ScheduleContract.State(
             scheduledAppInfo = ScheduleAppInfoUi(
                 name = "Sample App",
                 packageName = "com.example.app",

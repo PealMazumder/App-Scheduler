@@ -1,5 +1,6 @@
 package com.peal.appscheduler.ui.screens.schedule
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.peal.appscheduler.core.domain.util.ScheduleError
@@ -18,8 +19,10 @@ import com.peal.appscheduler.ui.model.ScheduleAppInfoUi
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -37,16 +40,17 @@ import javax.inject.Inject
 class SchedulerViewModel @Inject constructor(
     private val scheduleAppUseCase: ScheduleAppUseCase,
     private val cancelScheduledAppUseCase: CancelScheduledAppUseCase,
+    private val handle: SavedStateHandle,
 ) : ViewModel() {
 
-    private val _schedulerScreenState = MutableStateFlow(SchedulerScreenState())
-    val schedulerScreenState: StateFlow<SchedulerScreenState> = _schedulerScreenState
+    private val _schedulerScreenState = MutableStateFlow(ScheduleContract.State())
+    val schedulerScreenState: StateFlow<ScheduleContract.State> = _schedulerScreenState
 
     private var selectedDate: LocalDate? = null
     private var selectedTime: LocalTime? = null
 
-    private val _events = Channel<SchedulerScreenEvent>()
-    val events = _events.receiveAsFlow()
+    private val _effect = MutableSharedFlow<ScheduleContract.Effect>()
+    val effect get() = _effect.asSharedFlow()
 
     private var previousScheduleTimeInMilli: Long? = null
 
@@ -71,25 +75,25 @@ class SchedulerViewModel @Inject constructor(
         }
     }
 
-    fun handleIntent(intent: SchedulerScreenIntent) {
+    fun handleIntent(intent: ScheduleContract.Intent) {
         when (intent) {
-            is SchedulerScreenIntent.ScheduleApp -> {
+            is ScheduleContract.Intent.ScheduleApp -> {
                 insertSchedule(schedulerScreenState.value.isEditable)
             }
 
-            is SchedulerScreenIntent.OnDateSelected -> {
+            is ScheduleContract.Intent.OnDateSelected -> {
                 selectedDate = intent.date
                 _schedulerScreenState.update { it.copy(selectedDate = intent.date.toFormattedDate()) }
             }
 
-            is SchedulerScreenIntent.OnTimeSelected -> {
+            is ScheduleContract.Intent.OnTimeSelected -> {
                 selectedTime = intent.time
                 _schedulerScreenState.update {
                     it.copy(selectedTime = intent.time.toFormattedTime())
                 }
             }
 
-            is SchedulerScreenIntent.CancelSchedule -> {
+            is ScheduleContract.Intent.CancelSchedule -> {
                 viewModelScope.launch {
                     val scheduleTime = schedulerScreenState.value.scheduledAppInfo?.utcScheduleTime
                     _schedulerScreenState.update { it.copy(isLoading = true) }
@@ -103,18 +107,18 @@ class SchedulerViewModel @Inject constructor(
                             result.onSuccess {
                                 _schedulerScreenState.update { it.copy(isLoading = false) }
                                 viewModelScope.launch {
-                                    _events.send(SchedulerScreenEvent.ScheduleCancelled)
+                                    _effect.emit(ScheduleContract.Effect.ScheduleCancelled)
                                 }
                             }
                             result.onError { error ->
                                 _schedulerScreenState.update { it.copy(isLoading = false) }
                                 viewModelScope.launch {
                                     when (error) {
-                                        ScheduleError.ALREADY_HANDLED -> _events.send(
-                                            SchedulerScreenEvent.ScheduleAlreadyHandled
+                                        ScheduleError.ALREADY_HANDLED -> _effect.emit(
+                                            ScheduleContract.Effect.ScheduleAlreadyHandled
                                         )
 
-                                        else -> _events.send(SchedulerScreenEvent.UnknownError)
+                                        else -> _effect.emit(ScheduleContract.Effect.UnknownError)
                                     }
                                 }
                             }
@@ -142,13 +146,13 @@ class SchedulerViewModel @Inject constructor(
                 if (scheduledTime == previousScheduleTimeInMilli) {
                     _schedulerScreenState.update { it.copy(isLoading = false) }
                     viewModelScope.launch {
-                        _events.send(SchedulerScreenEvent.PreviousDateTime)
+                        _effect.emit(ScheduleContract.Effect.PreviousDateTime)
                     }
                     return
                 } else if (scheduledTime < System.currentTimeMillis()) {
                     _schedulerScreenState.update { it.copy(isLoading = false) }
                     viewModelScope.launch {
-                        _events.send(SchedulerScreenEvent.PastDateTime)
+                        _effect.emit(ScheduleContract.Effect.PastDateTime)
                     }
                     return
                 }
@@ -168,16 +172,16 @@ class SchedulerViewModel @Inject constructor(
                         result.onSuccess {
                             previousScheduleTimeInMilli = scheduledTime
                             _schedulerScreenState.update { it.copy(isLoading = false) }
-                            _events.send(SchedulerScreenEvent.AppScheduled)
+                            _effect.emit(ScheduleContract.Effect.AppScheduled)
                         }.onError {
                             _schedulerScreenState.update { it.copy(isLoading = false) }
                             when (it) {
                                 ScheduleError.TIME_CONFLICT -> {
-                                    _events.send(SchedulerScreenEvent.TimeConflict)
+                                    _effect.emit(ScheduleContract.Effect.TimeConflict)
                                 }
 
                                 else -> {
-                                    _events.send(SchedulerScreenEvent.UnknownError)
+                                    _effect.emit(ScheduleContract.Effect.UnknownError)
                                 }
                             }
 
@@ -187,7 +191,7 @@ class SchedulerViewModel @Inject constructor(
             } else {
                 _schedulerScreenState.update { it.copy(isLoading = false) }
                 viewModelScope.launch {
-                    _events.send(SchedulerScreenEvent.MissingDateTime)
+                    _effect.emit(ScheduleContract.Effect.MissingDateTime)
                 }
             }
         }

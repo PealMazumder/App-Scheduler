@@ -5,28 +5,61 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavController
 import com.peal.appscheduler.domain.model.DeviceAppInfo
-import com.peal.appscheduler.ui.screens.components.CommonCircularProgressIndicator
+import com.peal.appscheduler.ui.shared.navigation.navigateToAppScheduler
+import com.peal.appscheduler.ui.shared.components.CommonCircularProgressIndicator
 
 
 /**
  * Created by Peal Mazumder on 22/2/25.
  */
 
+
+@Composable
+fun DeviceAppsListScreenRoute(
+    modifier: Modifier = Modifier,
+    navController: NavController,
+    deviceAppsViewModel: DeviceAppsViewModel = hiltViewModel(),
+) {
+    val deviceAppsScreenState by deviceAppsViewModel.deviceAppsScreenState.collectAsStateWithLifecycle()
+
+    LaunchedEffect(
+        key1 = Unit
+    ) {
+        deviceAppsViewModel.effect.collect { effect ->
+            when (effect) {
+                is DeviceAppsContract.Effect.NavigateToScheduler -> {
+                    navController.navigateToAppScheduler(effect.data.toScheduleAppInfoUI())
+                }
+            }
+        }
+    }
+
+    DeviceAppsListScreen(
+        modifier = modifier,
+        deviceAppsScreenState = deviceAppsScreenState,
+        onIntent = deviceAppsViewModel::onIntent
+    )
+}
 @Composable
 fun DeviceAppsListScreen(
     modifier: Modifier = Modifier,
-    deviceAppsScreenState: DeviceAppsScreenState,
-    onNavigationEvent: (DeviceAppsNavigationEvent) -> Unit,
+    deviceAppsScreenState: DeviceAppsContract.State,
+    onIntent: (DeviceAppsContract.Intent) -> Unit,
 ) {
     when {
         deviceAppsScreenState.isLoading -> CommonCircularProgressIndicator(modifier = modifier)
         deviceAppsScreenState.deviceApps.isNotEmpty() -> InstalledAppsList(
             modifier = modifier,
             installedApps = deviceAppsScreenState.deviceApps,
-            onNavigationEvent = onNavigationEvent
+            onIntent = onIntent
         )
     }
 }
@@ -35,7 +68,7 @@ fun DeviceAppsListScreen(
 fun InstalledAppsList(
     modifier: Modifier,
     installedApps: List<DeviceAppInfo>,
-    onNavigationEvent: (DeviceAppsNavigationEvent) -> Unit
+    onIntent: (DeviceAppsContract.Intent) -> Unit
 ) {
     LazyColumn(
         modifier = modifier
@@ -45,8 +78,8 @@ fun InstalledAppsList(
         items(installedApps) { app ->
             InstalledAppItem(
                 app,
-                onNavigate = {
-                    onNavigationEvent(DeviceAppsNavigationEvent.OnNavigateScheduler(it))
+                onClick = {
+                    onIntent(DeviceAppsContract.Intent.OnNavigateScheduler(it))
                 }
             )
         }

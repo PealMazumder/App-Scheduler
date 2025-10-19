@@ -1,4 +1,4 @@
-package com.peal.appscheduler.ui.screens.components
+package com.peal.appscheduler.ui.shared.components
 
 import android.graphics.drawable.Drawable
 import androidx.compose.foundation.Image

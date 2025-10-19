@@ -10,24 +10,61 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavHostController
+import com.peal.appscheduler.ui.shared.navigation.navigateToAppScheduler
+import com.peal.appscheduler.ui.shared.navigation.navigateToDeviceAppsList
 
 
 /**
  * Created by Peal Mazumder on 23/2/25.
  */
 
+
+@Composable
+fun HomeScreenRoute(
+    modifier: Modifier = Modifier,
+    navController: NavHostController,
+    homeViewModel: HomeViewModel = hiltViewModel(),
+) {
+    val homeScreenState by homeViewModel.homeState.collectAsStateWithLifecycle()
+
+    LaunchedEffect(Unit) {
+        homeViewModel.homeEffect.collect { effect ->
+            when (effect) {
+                is HomeContract.Effect.NavigateToInstalledApps -> {
+                    navController.navigateToDeviceAppsList()
+                }
+
+                is HomeContract.Effect.NavigateToScheduledApps -> {
+                    navController.navigateToAppScheduler(effect.appInfo)
+                }
+            }
+        }
+    }
+
+    HomeScreen(
+        modifier = modifier,
+        homeScreenState = homeScreenState,
+        onIntent = homeViewModel::onIntent
+    )
+}
+
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
-    homeScreenState: HomeScreenState,
-    onNavigationEvent: (HomeNavigationEvent) -> Unit
+    homeScreenState: HomeContract.State,
+    onIntent: (HomeContract.Intent) -> Unit
 ) {
     Scaffold(
         modifier = modifier,
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { onNavigationEvent(HomeNavigationEvent.OnNavigateInstalledApps) }
+                onClick = { onIntent(HomeContract.Intent.OnNavigateInstalledApps) }
             ) {
                 Icon(
                     imageVector = Icons.Filled.Add,
@@ -48,7 +85,7 @@ fun HomeScreen(
                 ScheduledAppItem(
                     app = schedule,
                     onClick = {
-                        onNavigationEvent(HomeNavigationEvent.OnNavigateScheduledApps(schedule))
+                        onIntent(HomeContract.Intent.OnNavigateScheduledApps(schedule))
                     }
                 )
             }

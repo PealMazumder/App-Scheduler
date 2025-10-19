@@ -1,4 +1,4 @@
-package com.peal.appscheduler.ui.screens.components
+package com.peal.appscheduler.ui.shared.components
 
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog

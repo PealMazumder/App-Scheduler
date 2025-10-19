@@ -16,7 +16,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.peal.appscheduler.domain.model.DeviceAppInfo
-import com.peal.appscheduler.ui.screens.components.AppIcon
+import com.peal.appscheduler.ui.shared.components.AppIcon
 
 /**
  * Created by Peal Mazumder on 22/2/25.
@@ -25,14 +25,14 @@ import com.peal.appscheduler.ui.screens.components.AppIcon
 @Composable
 fun InstalledAppItem(
     app: DeviceAppInfo,
-    onNavigate: (DeviceAppInfo) -> Unit = {}
+    onClick: (DeviceAppInfo) -> Unit = {}
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(10.dp)
             .clickable {
-                onNavigate.invoke(app)
+                onClick.invoke(app)
             },
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -49,6 +49,3 @@ fun InstalledAppItem(
         }
     }
 }
-
-
-

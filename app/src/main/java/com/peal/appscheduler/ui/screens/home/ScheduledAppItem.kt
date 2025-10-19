@@ -19,7 +19,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.peal.appscheduler.R
 import com.peal.appscheduler.ui.model.ScheduleAppInfoUi
-import com.peal.appscheduler.ui.screens.components.AppIcon
+import com.peal.appscheduler.ui.shared.components.AppIcon
 
 
 /**

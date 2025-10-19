@@ -29,10 +29,9 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import androidx.navigation.compose.rememberNavController
 import com.peal.appscheduler.domain.utils.isAndroidTIRAMISUOrLater
-import com.peal.appscheduler.ui.navigation.NavGraph
-import com.peal.appscheduler.ui.screens.components.CommonAlertDialog
+import com.peal.appscheduler.ui.shared.navigation.AppSchedulerNavHost
+import com.peal.appscheduler.ui.shared.components.CommonAlertDialog
 import com.peal.appscheduler.ui.theme.AppSchedulerTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -67,10 +66,8 @@ class MainActivity : ComponentActivity() {
                 }
 
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    val navController = rememberNavController()
-                    NavGraph(
+                    AppSchedulerNavHost(
                         modifier = Modifier.padding(innerPadding),
-                        navController = navController
                     )
                 }
             }
