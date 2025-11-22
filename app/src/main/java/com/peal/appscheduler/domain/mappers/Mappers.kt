@@ -5,7 +5,7 @@ import com.peal.appscheduler.domain.model.AppSchedule
 import com.peal.appscheduler.domain.model.DeviceAppInfo
 import com.peal.appscheduler.domain.utils.formatScheduledTime
 import com.peal.appscheduler.ui.model.ScheduleAppInfoUi
-import com.peal.appscheduler.ui.shared.navigation.Screens
+import com.peal.appscheduler.ui.shared.navigation.AppSchedulerScreen
 import com.peal.appscheduler.ui.utils.getAppIconDrawable
 
 
@@ -26,7 +26,7 @@ fun AppSchedule.toScheduleAppInfoUi(context: Context): ScheduleAppInfoUi {
     )
 }
 
-fun Screens.AppSchedulerScreen.toScheduleAppInfoUi(context: Context): ScheduleAppInfoUi {
+fun AppSchedulerScreen.toScheduleAppInfoUi(context: Context): ScheduleAppInfoUi {
     return ScheduleAppInfoUi(
         id = this.id,
         name = this.name,

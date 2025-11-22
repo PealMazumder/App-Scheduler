@@ -1,5 +1,5 @@
 [versions]
-agp = "8.8.0-rc02"
+agp = "8.13.1"
 kotlin = "2.0.0"
 coreKtx = "1.15.0"
 junit = "4.13.2"
@@ -8,6 +8,7 @@ espressoCore = "3.6.1"
 lifecycleRuntimeKtx = "2.8.7"
 activityCompose = "1.10.0"
 composeBom = "2024.04.01"
+materialIconsExtended = "1.7.8"
 navigationCompose = "2.8.7"
 kotlinxSerialization = "1.8.0"
 hilt = "2.52"
@@ -15,8 +16,12 @@ hiltNav = "1.2.0"
 desugar = "2.0.3"
 roomRuntime = "2.6.1"
 archCoreTesting = "2.1.0"
+nav3Core = "1.0.0"
+lifecycleViewmodelNav3 = "2.10.0"
+material3 = "1.4.0"
 
 [libraries]
+androidx-compose-material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "materialIconsExtended" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
@@ -30,7 +35,7 @@ androidx-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
 androidx-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
 androidx-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
 androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
-androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
+androidx-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3" }
 navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref  = "navigationCompose" }
 kotlinx-serialization = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
 
@@ -46,6 +51,10 @@ room-compiler = { group = "androidx.room", name = "room-compiler", version.ref =
 room-testing = { group = "androidx.room", name = "room-testing", version.ref = "roomRuntime" }
 arch-core-testing = { group = "androidx.arch.core", name = "core-testing", version.ref = "archCoreTesting" }
 
+androidx-navigation3-runtime = { module = "androidx.navigation3:navigation3-runtime", version.ref = "nav3Core" }
+androidx-navigation3-ui = { module = "androidx.navigation3:navigation3-ui", version.ref = "nav3Core" }
+androidx-lifecycle-viewmodel-navigation3 = { module = "androidx.lifecycle:lifecycle-viewmodel-navigation3", version.ref = "lifecycleViewmodelNav3" }
+
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
@@ -53,4 +62,5 @@ kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlinxSerialization" }
 dagger-hilt-android = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
+
 

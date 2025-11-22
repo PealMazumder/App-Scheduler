@@ -11,10 +11,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavController
 import com.peal.appscheduler.domain.model.DeviceAppInfo
-import com.peal.appscheduler.ui.shared.navigation.navigateToAppScheduler
 import com.peal.appscheduler.ui.shared.components.CommonCircularProgressIndicator
+import com.peal.appscheduler.ui.shared.navigation.Navigator
+import com.peal.appscheduler.ui.shared.navigation.navigateToAppScheduler
 
 
 /**
@@ -25,7 +25,7 @@ import com.peal.appscheduler.ui.shared.components.CommonCircularProgressIndicato
 @Composable
 fun DeviceAppsListScreenRoute(
     modifier: Modifier = Modifier,
-    navController: NavController,
+    navigator: Navigator,
     deviceAppsViewModel: DeviceAppsViewModel = hiltViewModel(),
 ) {
     val deviceAppsScreenState by deviceAppsViewModel.deviceAppsScreenState.collectAsStateWithLifecycle()
@@ -36,7 +36,7 @@ fun DeviceAppsListScreenRoute(
         deviceAppsViewModel.effect.collect { effect ->
             when (effect) {
                 is DeviceAppsContract.Effect.NavigateToScheduler -> {
-                    navController.navigateToAppScheduler(effect.data.toScheduleAppInfoUI())
+                    navigator.navigateToAppScheduler(effect.data.toScheduleAppInfoUI())
                 }
             }
         }

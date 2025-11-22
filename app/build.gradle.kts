@@ -10,12 +10,12 @@ plugins {
 
 android {
     namespace = "com.peal.appscheduler"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.peal.appscheduler"
         minSdk = 24
-        targetSdk = 35
+        targetSdk = 36
         versionCode = 1
         versionName = "1.0"
 
@@ -33,11 +33,12 @@ android {
     }
     compileOptions {
         isCoreLibraryDesugaringEnabled = true
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions {
-        jvmTarget = "11"
+        jvmTarget = "17"
+        freeCompilerArgs += listOf("-Xjvm-default=all")
     }
     buildFeatures {
         compose = true
@@ -54,8 +55,14 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.androidx.compose.material.icons.extended)
     implementation(libs.navigation.compose)
     implementation(libs.kotlinx.serialization)
+
+    // navigation3
+    implementation(libs.androidx.navigation3.ui)
+    implementation(libs.androidx.navigation3.runtime)
+    implementation(libs.androidx.lifecycle.viewmodel.navigation3)
 
     // Hilt
     implementation(libs.dagger.hilt.android)

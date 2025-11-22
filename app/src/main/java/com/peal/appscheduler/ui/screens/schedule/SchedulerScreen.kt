@@ -41,7 +41,6 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavController
 import com.peal.appscheduler.R
 import com.peal.appscheduler.core.presentation.util.ObserveAsEvents
 import com.peal.appscheduler.domain.enums.ScheduleStatus
@@ -54,8 +53,7 @@ import com.peal.appscheduler.ui.shared.components.CommonAlertDialog
 import com.peal.appscheduler.ui.shared.components.CommonCircularProgressIndicator
 import com.peal.appscheduler.ui.shared.components.DatePickerDialog
 import com.peal.appscheduler.ui.shared.components.TimePickerDialog
-import com.peal.appscheduler.ui.shared.navigation.Screens
-import com.peal.appscheduler.ui.shared.viewModel.SharedDeviceAppViewModel
+import com.peal.appscheduler.ui.shared.navigation.AppSchedulerScreen
 import com.peal.appscheduler.ui.utils.debounce
 import com.peal.appscheduler.ui.utils.openScheduleExactAlarmPermissionSettings
 import kotlinx.coroutines.flow.Flow
@@ -72,8 +70,7 @@ import java.time.LocalTime
 @Composable
 fun SchedulerScreenRoute(
     modifier: Modifier = Modifier,
-    navController: NavController,
-    route: Screens.AppSchedulerScreen,
+    route: AppSchedulerScreen,
     schedulerViewModel: SchedulerViewModel = hiltViewModel(),
 ) {
     val schedulerScreenState by schedulerViewModel.schedulerScreenState.collectAsStateWithLifecycle()

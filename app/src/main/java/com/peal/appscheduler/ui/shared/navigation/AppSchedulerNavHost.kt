@@ -1,6 +1,7 @@
 package com.peal.appscheduler.ui.shared.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
@@ -8,6 +9,11 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
+import androidx.navigation3.runtime.NavKey
+import androidx.navigation3.runtime.entryProvider
+import androidx.navigation3.runtime.rememberNavBackStack
+import androidx.navigation3.scene.DialogSceneStrategy
+import androidx.navigation3.ui.NavDisplay
 import com.peal.appscheduler.ui.screens.deviceApps.DeviceAppsListScreenRoute
 import com.peal.appscheduler.ui.screens.home.HomeScreenRoute
 import com.peal.appscheduler.ui.screens.schedule.SchedulerScreenRoute
@@ -20,37 +26,38 @@ import com.peal.appscheduler.ui.shared.viewModel.SharedDeviceAppViewModel
 
 @Composable
 fun AppSchedulerNavHost(
-    modifier: Modifier,
-    navController: NavHostController = rememberNavController(),
+    modifier: Modifier = Modifier
 ) {
-    val sharedViewModel: SharedDeviceAppViewModel = hiltViewModel()
+    val navigationState = rememberNavigationState(startRoute = HomeScreen)
 
-    NavHost(
-        navController = navController,
-        startDestination = Screens.HomeScreen
-    ) {
+    val navigator = remember(navigationState) { Navigator(navigationState) }
 
-        composable<Screens.HomeScreen> {
+    val entryProvider = entryProvider {
+        entry<HomeScreen> {
             HomeScreenRoute(
                 modifier = modifier,
-                navController = navController,
+                navigator = navigator,
             )
         }
 
-        composable<Screens.DeviceAppsListScreen> {
+        entry<DeviceAppsListScreen> {
             DeviceAppsListScreenRoute(
                 modifier = modifier,
-                navController = navController,
+                navigator = navigator,
             )
         }
 
-        composable<Screens.AppSchedulerScreen> { backStackEntry ->
-            val route = backStackEntry.toRoute<Screens.AppSchedulerScreen>()
+        entry<AppSchedulerScreen> { key ->
             SchedulerScreenRoute(
                 modifier = modifier,
-                navController = navController,
-                route = route
+                route = key
             )
         }
     }
+
+    NavDisplay(
+        entries = navigationState.toEntries(entryProvider),
+        onBack = { navigator.goBack() },
+        sceneStrategy = remember { DialogSceneStrategy() }
+    )
 }

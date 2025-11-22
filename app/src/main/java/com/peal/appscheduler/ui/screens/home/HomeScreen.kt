@@ -15,7 +15,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavHostController
+import com.peal.appscheduler.ui.shared.navigation.Navigator
 import com.peal.appscheduler.ui.shared.navigation.navigateToAppScheduler
 import com.peal.appscheduler.ui.shared.navigation.navigateToDeviceAppsList
 
@@ -28,7 +28,7 @@ import com.peal.appscheduler.ui.shared.navigation.navigateToDeviceAppsList
 @Composable
 fun HomeScreenRoute(
     modifier: Modifier = Modifier,
-    navController: NavHostController,
+    navigator: Navigator,
     homeViewModel: HomeViewModel = hiltViewModel(),
 ) {
     val homeScreenState by homeViewModel.homeState.collectAsStateWithLifecycle()
@@ -37,11 +37,11 @@ fun HomeScreenRoute(
         homeViewModel.homeEffect.collect { effect ->
             when (effect) {
                 is HomeContract.Effect.NavigateToInstalledApps -> {
-                    navController.navigateToDeviceAppsList()
+                    navigator.navigateToDeviceAppsList()
                 }
 
                 is HomeContract.Effect.NavigateToScheduledApps -> {
-                    navController.navigateToAppScheduler(effect.appInfo)
+                    navigator.navigateToAppScheduler(effect.appInfo)
                 }
             }
         }
