@@ -1,0 +1,27 @@
+# Gradle build and local caches
+.gradle/
+.kotlin/
+build/
+**/build/
+
+# Android Studio and IntelliJ IDEA project files
+.idea/
+*.iml
+
+# Local Android SDK configuration
+local.properties
+
+# Build artifacts and logs
+*.apk
+*.aab
+*.ap_
+*.dex
+*.log
+
+# Native build output
+.externalNativeBuild/
+.cxx/
+
+# OS-generated files
+.DS_Store
+Thumbs.db
