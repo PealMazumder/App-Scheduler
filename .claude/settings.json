@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(./gradlew:*)",
+      "Bash(android docs:*)",
+      "Bash(android skills:*)",
+      "Bash(adb shell dumpsys:*)",
+      "Bash(adb shell am start:*)",
+      "Bash(grep:*)",
+      "Bash(find:*)",
+      "Bash(rg:*)",
+      "Bash(git status)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)"
+    ],
+    "ask": [
+      "Bash(git push:*)",
+      "Bash(git commit:*)",
+      "Edit(gradle/libs.versions.toml)",
+      "Edit(**/build.gradle.kts)"
+    ]
+  }
+}
