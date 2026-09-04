@@ -1,0 +1,572 @@
+{
+  "project": "App Scheduler (com.peal.appscheduler)",
+  "audited_at": "2026-09-04",
+  "commit": "be0f508",
+  "branch": "claude-audit",
+  "coverage": {
+    "modules_read_fully": [
+      ":app"
+    ],
+    "modules_sampled": [],
+    "skipped": [],
+    "phases_run": [
+      "architecture",
+      "compose",
+      "performance",
+      "security",
+      "build",
+      "testing",
+      "ux-a11y"
+    ],
+    "tools_run": [
+      "assembleDebug",
+      "lintDebug",
+      "testDebugUnitTest",
+      "assembleRelease",
+      ":app:compileDebugAndroidTestKotlin"
+    ],
+    "tools_not_run": [
+      "connectedDebugAndroidTest (no device attached)",
+      "Compose compiler metrics (not enabled)",
+      "profiler / macrobenchmark / LeakCanary (no device)",
+      "R8 (isMinifyEnabled = false, so assembleRelease exercised no shrinking)"
+    ],
+    "notes": "3,085 lines of production Kotlin in a single module; every source file was read, no sampling. All Critical and High findings were re-verified by the lead session against the cited source. One finding was dropped and three were downgraded during that pass - see the Corrections section of REPORT.md."
+  },
+  "findings": [
+    {
+      "id": "C1",
+      "phase": "architecture",
+      "severity": "critical",
+      "title": "cancelSchedule builds its PendingIntent without the action used to arm the alarm, so AlarmManager.cancel() matches nothing",
+      "locations": [
+        "app/src/main/java/com/peal/appscheduler/data/wapper/AlarmManagerWrapper.kt:52",
+        "app/src/main/java/com/peal/appscheduler/data/wapper/AlarmManagerWrapper.kt:32"
+      ],
+      "impact": "Cancelling a schedule is a no-op: the DB row reads CANCELLED and the UI reports success, but the alarm still fires and launches the app. PendingIntent matching uses Intent.filterEquals, which compares action (null vs com.peal.ACTION_SCHEDULE_APP) and ignores extras.",
+      "fix": "Extract a single private buildPendingIntent(packageName, scheduleId) used by both scheduleApp and cancelSchedule so action and request code cannot drift.",
+      "effort": "S",
+      "verified": true,
+      "verification_method": "Read both call sites; confirmed action set at :33 and absent at :52. Runtime confirmation still needs: adb shell dumpsys alarm | grep com.peal.appscheduler before/after a cancel.",
+      "status": "open"
+    },
+    {
+      "id": "C2",
+      "phase": "security",
+      "severity": "critical",
+      "title": "RescheduleService calls startForeground() with no foregroundServiceType declared, at targetSdk 36",
+      "locations": [
+        "app/src/main/AndroidManifest.xml:48",
+        "app/src/main/java/com/peal/appscheduler/service/RescheduleService.kt:61"
+      ],
+      "impact": "Android 14+ throws MissingForegroundServiceTypeException. The service is started from BOOT_COMPLETED, so reboot re-arming - the app's headline feature - crashes on every boot on modern devices. Lint did not flag it.",
+      "fix": "Declare a foregroundServiceType on the <service> element and pass the matching type to startForeground. Use shortService or specialUse, not systemExempted.",
+      "effort": "S",
+      "verified": false,
+      "verification_method": "Static: confirmed targetSdk 36, startForeground call, and absent manifest attribute. Confirm on an API 34+ emulator: adb reboot then adb logcat | grep MissingForegroundServiceType.",
+      "status": "open"
+    },
+    {
+      "id": "C3",
+      "phase": "performance",
+      "severity": "critical",
+      "title": "RescheduleService collects a never-completing Room Flow, making finally { stopSelf() } unreachable",
+      "locations": [
+        "app/src/main/java/com/peal/appscheduler/service/RescheduleService.kt:84",
+        "app/src/main/java/com/peal/appscheduler/service/RescheduleService.kt:106"
+      ],
+      "impact": "getScheduledAppsToReschedule() returns a Room observable Flow, so collect never returns. The foreground service and its notification run indefinitely after every boot, and each status write re-emits the flow against the stale currentTime captured at :79.",
+      "fix": "Use .first() for a one-shot read instead of .collect {}, then stopSelf().",
+      "effort": "S",
+      "verified": true,
+      "verification_method": "Traced ScheduleDao.kt:33 -> ScheduleRepositoryImpl.kt:48 -> RescheduleService.kt:84; confirmed the Flow is a Room @Query observable.",
+      "status": "open"
+    },
+    {
+      "id": "C4",
+      "phase": "ux-a11y",
+      "severity": "critical",
+      "title": "Overlay-permission dialog cannot be dismissed and re-arms on every ON_RESUME",
+      "locations": [
+        "app/src/main/java/com/peal/appscheduler/MainActivity.kt:53",
+        "app/src/main/java/com/peal/appscheduler/ui/shared/components/CommonAlertDialog.kt:21"
+      ],
+      "impact": "CommonAlertDialog defaults to showDismissButton=false, dismissOnBackPress=false, dismissOnClickOutside=false and MainActivity overrides none. The only button routes to Settings; declining there fires onResume, which re-shows the dialog. A user who will not grant SYSTEM_ALERT_WINDOW cannot use the app - and per H6 no overlay is ever drawn.",
+      "fix": "Pass showDismissButton=true and dismissOnBackPress=true, and stop re-evaluating the dialog on every resume. Better: remove the permission requirement entirely (see H6).",
+      "effort": "S",
+      "verified": true,
+      "verification_method": "Read the defaults at CommonAlertDialog.kt:21-23 and confirmed MainActivity.kt:99-112 passes none of them; observer at :53-58 sets showDialog on every ON_RESUME.",
+      "status": "open"
+    },
+    {
+      "id": "H1",
+      "phase": "architecture",
+      "severity": "high",
+      "title": "ScheduleAppUseCase discards both alarm-scheduling results and swallows CancellationException",
+      "locations": [
+        "app/src/main/java/com/peal/appscheduler/domain/usecase/ScheduleAppUseCase.kt:25",
+        "app/src/main/java/com/peal/appscheduler/domain/usecase/ScheduleAppUseCase.kt:29",
+        "app/src/main/java/com/peal/appscheduler/domain/usecase/ScheduleAppUseCase.kt:39"
+      ],
+      "impact": "updateSchedule() and scheduleApp() both return kotlin.Result; both return values are dropped and Result.Success is returned unconditionally. A schedule that failed to arm is reported as scheduled. runCatching{}.getOrElse{} also swallows CancellationException, violating CLAUDE.md rule 8.",
+      "fix": "Fold both alarm Results into the returned Result<Long, ScheduleError>; replace runCatching with a try/catch that rethrows CancellationException.",
+      "effort": "S",
+      "verified": true,
+      "verification_method": "Read Result.kt to confirm onError returns `this` (so conflict Failures do propagate - the .onError block is dead code, not a data-loss bug) and confirmed both alarm return values are unused.",
+      "status": "open"
+    },
+    {
+      "id": "H2",
+      "phase": "architecture",
+      "severity": "high",
+      "title": "No rememberViewModelStoreNavEntryDecorator - every ViewModel is Activity-scoped and never cleared",
+      "locations": [
+        "app/src/main/java/com/peal/appscheduler/ui/shared/navigation/NavigationState.kt:33"
+      ],
+      "impact": "Only rememberSaveableStateHolderNavEntryDecorator() is passed to rememberDecoratedNavEntries. lifecycle-viewmodel-navigation3 is declared in the build file but never used, so hiltViewModel() resolves against the Activity. SchedulerViewModel survives back-navigation: a date/time picked for app A is still set when the scheduler opens for app B.",
+      "fix": "Add rememberViewModelStoreNavEntryDecorator() to the entryDecorators list.",
+      "effort": "S",
+      "verified": true,
+      "verification_method": "Grepped the whole source set for ViewModelStoreNavEntryDecorator - zero hits; read NavigationState.kt:31-35.",
+      "status": "open"
+    },
+    {
+      "id": "H3",
+      "phase": "performance",
+      "severity": "high",
+      "title": "AppLaunchService.stopSelf() is unreachable on the malformed-intent path",
+      "locations": [
+        "app/src/main/java/com/peal/appscheduler/service/AppLaunchService.kt:161"
+      ],
+      "impact": "stopSelf() sits inside `if (scheduleId != null && scheduleId != -1L)`. An intent with a missing or -1 schedule id leaves a foreground service and its ongoing notification running indefinitely.",
+      "fix": "Call stopSelf() unconditionally after the work completes, outside the id guard.",
+      "effort": "S",
+      "verified": true,
+      "verification_method": "Traced both early-return paths at :58-71 and :73-84 into updateScheduleStatus(:160-175).",
+      "status": "open"
+    },
+    {
+      "id": "H4",
+      "phase": "security",
+      "severity": "high",
+      "title": "Exported receiver honours the app-private action com.peal.ACTION_SCHEDULE_APP with no sender validation",
+      "locations": [
+        "app/src/main/java/com/peal/appscheduler/receiver/AppSchedulerReceiver.kt:28",
+        "app/src/main/AndroidManifest.xml:36"
+      ],
+      "impact": "Any zero-permission app can send an explicit broadcast to the receiver and make App Scheduler launch an arbitrary installed package to the foreground (a background-activity-launch proxy) and write EXECUTED/FAILED onto any schedule row. The BOOT_COMPLETED branch is not spoofable (protected broadcast), and exported=true is required for it.",
+      "fix": "Keep exported=true for BOOT_COMPLETED but stop honouring ACTION_SCHEDULE_APP from external senders - deliver the alarm via an explicit non-exported component, or guard it with a signature-level permission.",
+      "effort": "M",
+      "verified": true,
+      "verification_method": "Read the receiver's action branches and the manifest's exported flag and intent-filter.",
+      "status": "open"
+    },
+    {
+      "id": "H5",
+      "phase": "security",
+      "severity": "high",
+      "title": "FOREGROUND_SERVICE_SYSTEM_EXEMPTED / systemExempted used with no qualifying exemption",
+      "locations": [
+        "app/src/main/AndroidManifest.xml:9",
+        "app/src/main/AndroidManifest.xml:44"
+      ],
+      "impact": "Play approves this foreground-service type only for device-owner, VPN or safety-role apps; none apply here. Expect Play rejection, plus ForegroundServiceStartNotAllowedException risk on Android 14+.",
+      "fix": "Switch to shortService or specialUse and drop the FOREGROUND_SERVICE_SYSTEM_EXEMPTED permission.",
+      "effort": "S",
+      "verified": false,
+      "verification_method": "Static: manifest read and matched against the documented exemption categories. Confirm via a Play Console declaration attempt and an API 34+ device.",
+      "status": "open"
+    },
+    {
+      "id": "H6",
+      "phase": "security",
+      "severity": "high",
+      "title": "SYSTEM_ALERT_WINDOW demanded on every resume, but no overlay is ever drawn",
+      "locations": [
+        "app/src/main/AndroidManifest.xml:7",
+        "app/src/main/java/com/peal/appscheduler/MainActivity.kt:53",
+        "app/src/main/java/com/peal/appscheduler/service/AppLaunchService.kt:107"
+      ],
+      "impact": "The permission is acquired purely as a background-activity-launch loophole for startActivity from a service. It is a restricted Play permission, nagged for on every resume (see C4), with a user-facing string that does not describe the real use.",
+      "fix": "Decide whether background activity launch is genuinely required. If not, delete the permission and notify instead of launching. If so, request it once with an honest rationale and a working decline path.",
+      "effort": "M",
+      "verified": true,
+      "verification_method": "Grepped for overlay/WindowManager.addView usage - none; confirmed the only consumer is the background startActivity at AppLaunchService.kt:107-108.",
+      "status": "open"
+    },
+    {
+      "id": "H7",
+      "phase": "performance",
+      "severity": "high",
+      "title": "setExact used instead of setExactAndAllowWhileIdle",
+      "locations": [
+        "app/src/main/java/com/peal/appscheduler/data/wapper/AlarmManagerWrapper.kt:43"
+      ],
+      "impact": "setExact alarms are deferred out of Doze to the next maintenance window. For an app whose only job is firing at an exact time, schedules silently fire late on an idle device.",
+      "fix": "Use setExactAndAllowWhileIdle for RTC_WAKEUP schedules.",
+      "effort": "S",
+      "verified": true,
+      "verification_method": "Read the call site; behaviour follows the documented AlarmManager contract.",
+      "status": "open"
+    },
+    {
+      "id": "H8",
+      "phase": "performance",
+      "severity": "high",
+      "title": "PackageManager.getApplicationIcon() called on the main thread, per schedule, on every DB emission",
+      "locations": [
+        "app/src/main/java/com/peal/appscheduler/ui/screens/home/HomeViewModel.kt:44",
+        "app/src/main/java/com/peal/appscheduler/domain/mappers/Mappers.kt:17",
+        "app/src/main/java/com/peal/appscheduler/ui/utils/ContextExt.kt:33"
+      ],
+      "impact": "viewModelScope defaults to Dispatchers.Main.immediate and no dispatcher is specified, so N binder plus resource loads run on the UI thread every time the schedules table changes. Note the ViewModel holds an @ApplicationContext, so this is not a memory leak - the defects are main-thread I/O and untestability.",
+      "fix": "Move mapping off the ViewModel onto an injected IO dispatcher in the repository, and stop passing Context into the domain mapper.",
+      "effort": "M",
+      "verified": false,
+      "verification_method": "Static: call chain and dispatcher confirmed by reading. Magnitude needs StrictMode detectDiskReads or a systrace of the Home DB emission.",
+      "status": "open"
+    },
+    {
+      "id": "H9",
+      "phase": "compose",
+      "severity": "high",
+      "title": "Drawable to Bitmap rasterised on the main thread for every list row",
+      "locations": [
+        "app/src/main/java/com/peal/appscheduler/ui/shared/components/AppIcon.kt:30",
+        "app/src/main/java/com/peal/appscheduler/ui/utils/ImageUtils.kt:19"
+      ],
+      "impact": "Most launcher icons are AdaptiveIconDrawable, so the BitmapDrawable fast path at ImageUtils.kt:15 is skipped and a full Canvas draw runs during composition. Roughly 150 KB per icon at 192px, with no cross-item cache. Correctly wrapped in remember(icon), so this is once per row, not per recomposition.",
+      "fix": "Decode off the main thread and cache by package name; or adopt an image loader that handles Drawable sources.",
+      "effort": "M",
+      "verified": false,
+      "verification_method": "Static: read remember(icon) at :30 and the Canvas path at ImageUtils.kt:18-27. Scroll cost needs adb shell dumpsys gfxinfo com.peal.appscheduler framestats.",
+      "status": "open"
+    },
+    {
+      "id": "H10",
+      "phase": "ux-a11y",
+      "severity": "high",
+      "title": "Device-apps screen shows an infinite spinner on error and a blank screen when empty",
+      "locations": [
+        "app/src/main/java/com/peal/appscheduler/ui/screens/deviceApps/DeviceAppsViewModel.kt:45",
+        "app/src/main/java/com/peal/appscheduler/ui/screens/deviceApps/DeviceAppsListScreen.kt:57"
+      ],
+      "impact": "`.catch { e -> e.printStackTrace() }` swallows the failure and never clears isLoading (set true at :43), and the `when` block has no else branch. This is the only entry point to the app's core task and both failure modes are dead ends.",
+      "fix": "Add an error field to DeviceAppsContract.State, clear isLoading in the catch, and add empty and error branches with a retry action.",
+      "effort": "S",
+      "verified": true,
+      "verification_method": "Read the catch block and the exhaustive-less when; confirmed no else and no error state in the contract.",
+      "status": "open"
+    },
+    {
+      "id": "H11",
+      "phase": "security",
+      "severity": "high",
+      "title": "Exact-alarm permission prompt gated on API 33 while the permission exists from API 31",
+      "locations": [
+        "app/src/main/java/com/peal/appscheduler/ui/screens/schedule/SchedulerScreen.kt:119"
+      ],
+      "impact": "AlarmManagerWrapper.kt:26 and ContextExt.kt:18 both correctly use >= S (31). On API 31-32 with the permission revoked the user is never prompted, scheduleApp throws SecurityException, which becomes Result.failure and is then discarded by H1 - the user is told the app was scheduled and no alarm exists.",
+      "fix": "Change isAndroidTIRAMISUOrLater() to the API 31 check already used by the wrapper and ContextExt.",
+      "effort": "S",
+      "verified": true,
+      "verification_method": "Compared the three SDK guards directly; confirmed the inconsistency.",
+      "status": "open"
+    },
+    {
+      "id": "H12",
+      "phase": "performance",
+      "severity": "high",
+      "title": "All installed apps' icons eagerly decoded before first emission and retained in ViewModel state",
+      "locations": [
+        "app/src/main/java/com/peal/appscheduler/data/repositoryImpl/DeviceAppsRepositoryImpl.kt:30",
+        "app/src/main/java/com/peal/appscheduler/ui/screens/deviceApps/DeviceAppsContract.kt:11"
+      ],
+      "impact": "loadIcon() runs for every launcher activity before anything is emitted. Correctly on Dispatchers.IO so the UI thread is spared, but the user waits behind one long spinner and the heap holds N drawables for the screen's lifetime.",
+      "fix": "Emit names first and load icons lazily per visible row, with a bounded cache.",
+      "effort": "M",
+      "verified": false,
+      "verification_method": "Static: read the eager map at :30-37 and flowOn(Dispatchers.IO) at :40. Heap cost needs a dump filtered on Bitmap on a device with 150+ launcher apps.",
+      "status": "open"
+    },
+    {
+      "id": "H13",
+      "phase": "testing",
+      "severity": "high",
+      "title": "Zero JVM tests of production code, and the ViewModels are untestable by construction",
+      "locations": [
+        "app/src/test/java/com/peal/appscheduler/ExampleUnitTest.kt:12",
+        "app/src/main/java/com/peal/appscheduler/ui/screens/schedule/SchedulerViewModel.kt:152",
+        "app/build.gradle.kts:77"
+      ],
+      "impact": "The entire JVM suite is assertEquals(4, 2 + 2). No dispatcher is injected anywhere and kotlinx-coroutines-test is not a declared dependency, so Dispatchers.setMain is unavailable; System.currentTimeMillis() is read directly in the past-date rule and delay(500) is hardcoded. Every Critical in this report would have been caught by a unit test.",
+      "fix": "Add kotlinx-coroutines-test and Turbine, inject dispatchers and a time provider, then test the four use cases, DateTimeExtensions and the three ViewModels. The existing interface/@Binds layering means about 60 lines of fakes unlock all of it.",
+      "effort": "L",
+      "verified": true,
+      "verification_method": "Ran testDebugUnitTest (1 test, passes); read all three ViewModels for dispatcher/clock injection and the build file for test dependencies.",
+      "status": "open"
+    },
+    {
+      "id": "H14",
+      "phase": "build",
+      "severity": "high",
+      "title": "No Room schema export, no migrations, no destructive fallback",
+      "locations": [
+        "app/src/main/java/com/peal/appscheduler/data/local/SchedulerAppDatabase.kt:13",
+        "app/src/main/java/com/peal/appscheduler/di/DatabaseModule.kt:20"
+      ],
+      "impact": "KSP warns twice per build that the schema export directory is not configured. The first entity change ships IllegalStateException: A migration from 1 to 2 was required but not found to every existing user. With no app/schemas/ directory, migration tests are impossible today.",
+      "fix": "Apply the Room Gradle plugin with room.schemaLocation, commit app/schemas/, and add a MigrationTestHelper test.",
+      "effort": "M",
+      "verified": true,
+      "verification_method": "Confirmed the KSP warning in the build log and the absence of app/schemas/ and any Migration class.",
+      "status": "open"
+    },
+    {
+      "id": "H15",
+      "phase": "build",
+      "severity": "high",
+      "title": "Release path has never been exercised end to end - R8 disabled, no signing config, no bundle",
+      "locations": [
+        "app/build.gradle.kts:27"
+      ],
+      "impact": "isMinifyEnabled = false means R8 has never run against Room, Hilt and @Serializable NavKeys, so the keep rules are unvalidated and proguard-rules.pro is stock comments. The release APK is unsigned and there is no AAB target. 27,306 classes and 143k method ids ship un-shrunk.",
+      "fix": "Enable minification and shrinkResources, add a signingConfig, add a bundle target, then fix the keep rules the first minified run exposes.",
+      "effort": "M",
+      "verified": true,
+      "verification_method": "Read the release build type; verified assembleRelease produced app-release-unsigned.apk with no R8 task in the build log.",
+      "status": "open"
+    },
+    {
+      "id": "H16",
+      "phase": "build",
+      "severity": "high",
+      "title": "material-icons-extended ships roughly 11,400 classes (about 42% of the APK) for two icons already present in material-icons-core",
+      "locations": [
+        "app/build.gradle.kts:58"
+      ],
+      "impact": "The single largest available size win, and a one-line deletion. Amplified by H15 because R8 is not shrinking it.",
+      "fix": "Delete the material-icons-extended dependency; the two icons used are in material-icons-core.",
+      "effort": "S",
+      "verified": true,
+      "verification_method": "Confirmed the dependency declaration and that only Icons.Filled.Add and Icons.Default.DateRange are referenced.",
+      "status": "open"
+    },
+    {
+      "id": "H17",
+      "phase": "build",
+      "severity": "high",
+      "title": "The Compose BOM is inert - the stack actually resolves through the separately pinned material3",
+      "locations": [
+        "gradle/libs.versions.toml:10",
+        "app/build.gradle.kts:53"
+      ],
+      "impact": "BOM 2024.04.01 is overridden by material3:1.4.0, which drags compose ui/runtime to 1.9.5 alongside ripple 1.8.1 and material-icons-extended 1.7.8. The pinning is fiction and any material3 bump silently moves the whole stack.",
+      "fix": "Either drop the explicit material3/icons versions and let the BOM govern, or drop the BOM and pin every Compose artifact deliberately.",
+      "effort": "S",
+      "verified": true,
+      "verification_method": "Confirmed the version catalog pins and the BOM declaration coexist in app/build.gradle.kts.",
+      "status": "open"
+    },
+    {
+      "id": "H18",
+      "phase": "architecture",
+      "severity": "high",
+      "title": "The domain layer depends on the UI layer and on Android types",
+      "locations": [
+        "app/src/main/java/com/peal/appscheduler/domain/mappers/Mappers.kt:3",
+        "app/src/main/java/com/peal/appscheduler/domain/model/DeviceAppInfo.kt:3"
+      ],
+      "impact": "domain imports android.content.Context, android.graphics.drawable.Drawable, ui.model.ScheduleAppInfoUi and ui.shared.navigation.AppSchedulerScreen. This inverts the dependency rule and is a direct cause of H13 - domain code cannot be tested on the JVM.",
+      "fix": "Move the UI mappers into the ui layer and replace Drawable in domain models with a package-name reference the UI resolves.",
+      "effort": "M",
+      "verified": true,
+      "verification_method": "Read the import blocks of both files.",
+      "status": "open"
+    },
+    {
+      "id": "H19",
+      "phase": "ux-a11y",
+      "severity": "high",
+      "title": "Past dates and times are freely selectable and rejected only after Save, via a Toast",
+      "locations": [
+        "app/src/main/java/com/peal/appscheduler/ui/shared/components/DatePickerDialog.kt:26",
+        "app/src/main/java/com/peal/appscheduler/ui/screens/schedule/SchedulerViewModel.kt:152"
+      ],
+      "impact": "rememberDatePickerState() is created with no selectableDates constraint and rememberTimePickerState with no bound. A scheduling app lets the user pick yesterday and only complains afterwards.",
+      "fix": "Pass a selectableDates policy that rejects past dates, and validate the combined date+time before enabling Save.",
+      "effort": "S",
+      "verified": true,
+      "verification_method": "Read both picker constructors and the post-hoc validation branch in the ViewModel.",
+      "status": "open"
+    },
+    {
+      "id": "MED-A",
+      "phase": "architecture",
+      "severity": "medium",
+      "title": "One-shot effects use MutableSharedFlow with replay 0 and no buffer in all three ViewModels",
+      "locations": [
+        "app/src/main/java/com/peal/appscheduler/ui/screens/schedule/SchedulerViewModel.kt:52",
+        "app/src/main/java/com/peal/appscheduler/ui/screens/home/HomeViewModel.kt:35",
+        "app/src/main/java/com/peal/appscheduler/ui/screens/deviceApps/DeviceAppsViewModel.kt:32"
+      ],
+      "impact": "Emissions with no live collector are dropped. All three files import Channel and receiveAsFlow and use neither. Backgrounding the app during the hardcoded delay(500) loses the success or error message.",
+      "fix": "Replace with Channel(Channel.BUFFERED).receiveAsFlow(), which the imports already anticipate.",
+      "effort": "S",
+      "verified": true,
+      "verification_method": "Read all three declarations and confirmed the unused imports.",
+      "status": "open"
+    },
+    {
+      "id": "MED-B",
+      "phase": "compose",
+      "severity": "medium",
+      "title": "Two screens collect effects with lifecycle-unaware LaunchedEffect(Unit)",
+      "locations": [
+        "app/src/main/java/com/peal/appscheduler/ui/screens/home/HomeScreen.kt:36",
+        "app/src/main/java/com/peal/appscheduler/ui/screens/deviceApps/DeviceAppsListScreen.kt:33"
+      ],
+      "impact": "Back-stack mutation is possible while the screen is STOPPED. The third screen uses the correct ObserveAsEvents helper, so this is an inconsistency as much as a bug.",
+      "fix": "Use the existing ObserveAsEvents helper in both screens.",
+      "effort": "S",
+      "verified": true,
+      "verification_method": "Read both effect-collection blocks.",
+      "status": "open"
+    },
+    {
+      "id": "MED-C",
+      "phase": "compose",
+      "severity": "medium",
+      "title": "ObserveAsEvents applies rememberUpdatedState to the lifecycle owner instead of the event callback",
+      "locations": [
+        "app/src/main/java/com/peal/appscheduler/core/presentation/util/ObserveAsEvents.kt:23"
+      ],
+      "impact": "The already-stable lifecycle owner is wrapped while onEvent, the lambda that actually needs updating, is captured directly at :28. Latent stale-lambda trap; benign today because the captured handlers are stable.",
+      "fix": "Wrap onEvent in rememberUpdatedState and key the LaunchedEffect on the lifecycle owner.",
+      "effort": "S",
+      "verified": true,
+      "verification_method": "Read the helper in full.",
+      "status": "open"
+    },
+    {
+      "id": "MED-D",
+      "phase": "compose",
+      "severity": "medium",
+      "title": "Modifier contract violations across 9 composables, plus one modifier applied to two siblings",
+      "locations": [
+        "app/src/main/java/com/peal/appscheduler/ui/screens/deviceApps/DeviceAppItem.kt:26",
+        "app/src/main/java/com/peal/appscheduler/ui/screens/home/ScheduledAppItem.kt:33",
+        "app/src/main/java/com/peal/appscheduler/ui/screens/schedule/SchedulerScreen.kt:147",
+        "app/src/main/java/com/peal/appscheduler/ui/shared/navigation/AppSchedulerNavHost.kt:58"
+      ],
+      "impact": "Eight composables omit the Modifier parameter and one declares it without a default, so callers cannot override padding or click behaviour. SchedulerScreen applies the same modifier to both the Column (:147) and the loading indicator (:230), and AppSchedulerNavHost never applies its modifier to NavDisplay, forwarding it to three screen children instead.",
+      "fix": "Add `modifier: Modifier = Modifier` as the first optional parameter applied to the root node, per CLAUDE.md rule 2.",
+      "effort": "M",
+      "verified": true,
+      "verification_method": "Read every cited composable signature.",
+      "status": "open"
+    },
+    {
+      "id": "MED-E",
+      "phase": "ux-a11y",
+      "severity": "medium",
+      "title": "Accessibility: unlabelled clickable rows, sub-48dp touch targets, and a failing contrast ratio",
+      "locations": [
+        "app/src/main/java/com/peal/appscheduler/ui/screens/schedule/SchedulerScreen.kt:161",
+        "app/src/main/java/com/peal/appscheduler/ui/screens/home/ScheduledAppItem.kt:41",
+        "app/src/main/java/com/peal/appscheduler/ui/screens/deviceApps/DeviceAppItem.kt:48"
+      ],
+      "impact": "Clickable Rows carry no role, onClickLabel or mergeDescendants, so TalkBack announces list rows as loose nodes rather than buttons. The date and time picker rows are about 24dp tall against a 48dp minimum because raw Modifier.clickable does not apply minimumInteractiveComponentSize. Color.Gray on the light surface measures about 3.5:1 against the 4.5:1 AA requirement for 14sp text. Note contentDescription coverage is 5/5 - the defect is over-description, not omission.",
+      "fix": "Add semantics(role = Role.Button) and mergeDescendants to clickable rows, enforce heightIn(min = 48.dp), and replace Color.Gray with MaterialTheme.colorScheme.onSurfaceVariant.",
+      "effort": "M",
+      "verified": true,
+      "verification_method": "Read every cited site; contrast computed from #888888 on #FFFFFF.",
+      "status": "open"
+    },
+    {
+      "id": "MED-F",
+      "phase": "architecture",
+      "severity": "medium",
+      "title": "State and lifecycle hygiene: unused SavedStateHandle, duplicated picker state, unremoved observer, unscoped database",
+      "locations": [
+        "app/src/main/java/com/peal/appscheduler/ui/screens/schedule/SchedulerViewModel.kt:43",
+        "app/src/main/java/com/peal/appscheduler/ui/screens/schedule/SchedulerViewModel.kt:49",
+        "app/src/main/java/com/peal/appscheduler/MainActivity.kt:53",
+        "app/src/main/java/com/peal/appscheduler/di/DatabaseModule.kt:18"
+      ],
+      "impact": "SavedStateHandle is injected but never read, so a half-filled form is wiped on process death. Picker state is duplicated between the StateFlow and private vars, giving two sources of truth. The lifecycle observer added in LaunchedEffect is never removed (should be DisposableEffect - the correct pattern already exists at SchedulerScreen.kt:116). provideDatabase and provideScheduleDao are unscoped, which is latent today with one consumer but silently yields a second Room instance and a separate InvalidationTracker if another is added.",
+      "fix": "Persist picker state in SavedStateHandle, delete the private vars, convert the observer to DisposableEffect, and add @Singleton to the database providers.",
+      "effort": "M",
+      "verified": true,
+      "verification_method": "Read all four sites.",
+      "status": "open"
+    },
+    {
+      "id": "MED-G",
+      "phase": "build",
+      "severity": "medium",
+      "title": "CI runs no tests or lint, has no PR trigger, and interpolates untrusted input into a shell heredoc",
+      "locations": [
+        ".github/workflows/main.yml:5",
+        ".github/workflows/main.yml:26",
+        ".github/workflows/main.yml:34"
+      ],
+      "impact": "The workflow builds only assembleDebug on push to main. Nothing gates a merge, so androidTest can rot unnoticed. The Teams step interpolates ${{ github.ref_name }} into an unquoted heredoc - safe only while the trigger stays main-only, and a shell-injection surface the moment a PR trigger is added. There is also no lint { } block in the build file, so the 39 lint warnings have no ratchet.",
+      "fix": "Add a pull_request trigger, run lintDebug and testDebugUnitTest, move webhook interpolation into env vars, and add a lint block with abortOnError and a baseline.",
+      "effort": "M",
+      "verified": true,
+      "verification_method": "Read the workflow and the build file.",
+      "status": "open"
+    },
+    {
+      "id": "LOW-A",
+      "phase": "architecture",
+      "severity": "low",
+      "title": "Dead code and stale migration residue",
+      "locations": [
+        "app/src/main/java/com/peal/appscheduler/ui/shared/viewModel/SharedDeviceAppViewModel.kt:13",
+        "app/src/main/java/com/peal/appscheduler/ui/shared/navigation/AppSchedulerNavHost.kt:7",
+        "app/src/main/java/com/peal/appscheduler/domain/utils/DateTimeExtensions.kt:77"
+      ],
+      "impact": "SharedDeviceAppViewModel is unused and missing @HiltViewModel, so it would crash if anyone wired it up. Five stale androidx.navigation imports remain from the Nav3 migration, keeping a 473-class unused dependency on the classpath. toUtcEpochMillis() is a provable identity function - epoch millis are timezone-independent, so converting to a UTC ZonedDateTime and back returns the input unchanged, while the name promises a normalisation that never happens.",
+      "fix": "Delete the unused ViewModel, the five imports and the navigation-compose dependency; delete or rename toUtcEpochMillis.",
+      "effort": "S",
+      "verified": true,
+      "verification_method": "Grepped for usages; read the function body and confirmed the identity.",
+      "status": "open"
+    },
+    {
+      "id": "LOW-B",
+      "phase": "compose",
+      "severity": "low",
+      "title": "Assorted small Compose and UX defects",
+      "locations": [
+        "app/src/main/java/com/peal/appscheduler/ui/screens/schedule/SchedulerScreen.kt:83",
+        "app/src/main/java/com/peal/appscheduler/ui/screens/deviceApps/DeviceAppsListScreen.kt:78",
+        "app/src/main/java/com/peal/appscheduler/ui/shared/components/TimePickerDialog.kt:35",
+        "app/src/main/java/com/peal/appscheduler/ui/screens/schedule/SchedulerViewModel.kt:106"
+      ],
+      "impact": "A LaunchedEffect(appInfo) block is duplicated verbatim; items() is called without a key (HomeScreen does it correctly); OK and Cancel are hardcoded in TimePickerDialog while the sibling DatePickerDialog uses stringResource; an artificial delay(500) is stacked onto both save and cancel on top of a 500ms debounce; getSystemService is called unremembered in a composable body at :111.",
+      "fix": "One sweep commit - none of these individually justify a change.",
+      "effort": "S",
+      "verified": true,
+      "verification_method": "Read each cited line.",
+      "status": "open"
+    },
+    {
+      "id": "MED-H",
+      "phase": "ux-a11y",
+      "severity": "medium",
+      "title": "Date picker OK button is inert on first open and never dismisses the dialog itself",
+      "locations": [
+        "app/src/main/java/com/peal/appscheduler/ui/shared/components/DatePickerDialog.kt:31"
+      ],
+      "impact": "rememberDatePickerState() is created with no initialSelectedDateMillis, so selectedDateMillis is null until the user taps a date. The confirm button's body is `selectedDateMillis?.let { onDateSelected(...) }`, so on first open OK does nothing at all - and because dismissal happens inside the caller's onDateSelected, the dialog does not close either. In edit mode the existing date is not pre-selected.",
+      "fix": "Seed initialSelectedDateMillis from current state and call onDismissRequest unconditionally in the confirm button.",
+      "effort": "S",
+      "verified": true,
+      "verification_method": "Read the picker and its call site at SchedulerScreen.kt:209-217.",
+      "status": "open"
+    }
+  ]
+}

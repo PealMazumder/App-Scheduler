@@ -7,17 +7,36 @@ Depth lives in `.claude/skills/`. Read the relevant skill before doing real work
 
 ## Project facts
 
-<!-- Run /prime-android once. It fills this block in from the actual repo. Do not guess these. -->
-
-- **Package / applicationId:** _TBD_
-- **minSdk / targetSdk / compileSdk:** _TBD_
-- **Module layout:** _TBD_
-- **DI:** _TBD_ (Hilt / Koin / manual)
-- **Navigation:** _TBD_ (Nav 2 Compose / Nav3 / custom)
-- **Async & state:** _TBD_ (Coroutines + Flow assumed)
-- **Persistence / network:** _TBD_
-- **Test stack:** _TBD_
-- **CI:** _TBD_
+- **Package / applicationId:** `com.peal.appscheduler` (namespace identical)
+- **minSdk / targetSdk / compileSdk:** 24 / 36 / 36
+- **Module layout:** single module `:app` (`settings.gradle.kts` includes only `:app`). Internal packages:
+  `core/` (Result/Error primitives, `ObserveAsEvents`), `data/` (Room local, mappers, repositoryImpl,
+  `wapper/AlarmManagerWrapper` — sic), `di/`, `domain/` (model, repository interfaces, usecase, utils),
+  `receiver/`, `service/`, `ui/` (screens, shared components, navigation, theme), `utils/`.
+- **DI:** Hilt 2.52, rooted at `AppSchedulerApp` (`@HiltAndroidApp`). Three `SingletonComponent` modules:
+  `AppModule` (AlarmManagerWrapper, PackageManager), `DatabaseModule` (Room db + DAO), `RepositoryModule`
+  (`@Binds` for the three repositories). Hilt compiler runs through **kapt**, Room through **KSP**.
+- **Navigation:** Navigation 3 (`androidx.navigation3` 1.0.0) — `NavDisplay` + `entryProvider` in
+  `ui/shared/navigation/AppSchedulerNavHost.kt`, backstack held by `NavigationState`/`Navigator`. Routes are
+  type-safe: `@Serializable` `NavKey` data objects/class in `Screens.kt`. Legacy `navigation-compose` 2.8.7
+  is still declared in `app/build.gradle.kts` and imported in `AppSchedulerNavHost.kt` but unused.
+- **Async & state:** Coroutines + `StateFlow`. MVI-ish contract pattern per screen
+  (`*Contract.kt` = State / Event / Effect). No explicit `kotlinx-coroutines-core` entry in the version
+  catalog — it arrives transitively via Lifecycle/Room.
+- **Persistence / network:** Room 2.6.1 (`SchedulerAppDatabase`, `ScheduleDao`), no declared migrations.
+  **No networking layer and no image-loading library** — app icons come from `PackageManager` drawables via
+  `ui/utils/ImageUtils.kt`. Serialization: `kotlinx-serialization-json` 1.8.0 (used for nav keys).
+- **Test stack:** JUnit4 only. 1 JVM unit test (`ExampleUnitTest` — asserts 2+2), 2 instrumented tests
+  (`ExampleInstrumentedTest` — package name; `ScheduleDaoTest` — 233 lines, the only real test).
+  Available but largely unused: `androidx.arch.core:core-testing`, `room-testing`,
+  `compose-ui-test-junit4`, Espresso. **No** `kotlinx-coroutines-test`, Turbine, MockK, or Robolectric.
+- **CI:** GitHub Actions, `.github/workflows/main.yml`, on push to `main`. Runs **only**
+  `./gradlew assembleDebug`, uploads the debug APK, and posts an adaptive card to a Teams webhook.
+  No lint, no unit tests, no release build in CI.
+- **Build:** Gradle 8.14.3, AGP 8.13.1, Kotlin 2.0.0, JVM target 17, core library desugaring enabled,
+  `-Xjvm-default=all`. **R8/minification is disabled for release** (`isMinifyEnabled = false`); the
+  proguard file is stock comments. No baseline profile, no convention plugins, no build flavors,
+  no signing config, no configuration cache / parallel flags in `gradle.properties`.
 
 ---
 
