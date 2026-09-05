@@ -28,27 +28,25 @@ fun AppSchedulerNavHost(
     val entryProvider = entryProvider {
         entry<HomeScreen> {
             HomeScreenRoute(
-                modifier = modifier,
                 navigator = navigator,
             )
         }
 
         entry<DeviceAppsListScreen> {
             DeviceAppsListScreenRoute(
-                modifier = modifier,
                 navigator = navigator,
             )
         }
 
         entry<AppSchedulerScreen> { key ->
             SchedulerScreenRoute(
-                modifier = modifier,
                 route = key
             )
         }
     }
 
     NavDisplay(
+        modifier = modifier,
         entries = navigationState.toEntries(entryProvider),
         onBack = { navigator.goBack() },
         sceneStrategy = remember { DialogSceneStrategy() }

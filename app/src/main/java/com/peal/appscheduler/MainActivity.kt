@@ -86,7 +86,7 @@ class MainActivity : ComponentActivity() {
     }
 
     @Composable
-    fun OverlayPermissionDialog(context: Context, onDismiss: () -> Unit) {
+    fun OverlayPermissionDialog(context: Context, onDismiss: () -> Unit, modifier: Modifier = Modifier) {
         val overlayPermissionLauncher = rememberLauncherForActivityResult(
             contract = ActivityResultContracts.StartActivityForResult()
         ) {
@@ -94,6 +94,7 @@ class MainActivity : ComponentActivity() {
         }
 
         CommonAlertDialog(
+            modifier = modifier,
             title = stringResource(R.string.permission_required),
             message = stringResource(R.string.this_app_needs_permission_to_display_over_other_apps),
             confirmText = stringResource(R.string.grant_permission),

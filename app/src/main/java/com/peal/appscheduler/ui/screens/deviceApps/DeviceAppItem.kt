@@ -25,10 +25,11 @@ import com.peal.appscheduler.ui.shared.components.AppIcon
 @Composable
 fun InstalledAppItem(
     app: DeviceAppInfo,
-    onClick: (DeviceAppInfo) -> Unit = {}
+    onClick: (DeviceAppInfo) -> Unit = {},
+    modifier: Modifier = Modifier
 ) {
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(10.dp)
             .clickable {

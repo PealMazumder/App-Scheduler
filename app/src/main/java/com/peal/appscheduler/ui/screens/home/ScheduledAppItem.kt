@@ -32,10 +32,11 @@ import com.peal.appscheduler.ui.shared.components.AppIcon
 @Composable
 fun ScheduledAppItem(
     app: ScheduleAppInfoUi,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
             .clickable(

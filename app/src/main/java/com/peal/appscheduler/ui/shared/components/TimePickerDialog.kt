@@ -7,6 +7,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimePicker
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.peal.appscheduler.R
 import java.time.LocalTime
@@ -20,7 +21,8 @@ import java.time.LocalTime
 @Composable
 fun TimePickerDialog(
     onDismissRequest: () -> Unit,
-    onTimeSelected: (LocalTime) -> Unit
+    onTimeSelected: (LocalTime) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val currentTime = LocalTime.now()
     val timePickerState = rememberTimePickerState(
@@ -29,6 +31,7 @@ fun TimePickerDialog(
     )
 
     AlertDialog(
+        modifier = modifier,
         onDismissRequest = onDismissRequest,
         confirmButton = {
             TextButton(onClick = {

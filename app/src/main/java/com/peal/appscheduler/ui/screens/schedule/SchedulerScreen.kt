@@ -5,6 +5,7 @@ import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -141,15 +142,16 @@ fun SchedulerScreen(
         )
     }
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.Start,
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
+    Box(modifier = modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.Start,
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
 
-        AppSection(state.scheduledAppInfo)
+            AppSection(state.scheduledAppInfo)
 
         Text(
             text = stringResource(R.string.scheduling),
@@ -202,6 +204,11 @@ fun SchedulerScreen(
             },
             state
         )
+        }
+
+        if (state.isLoading) {
+            CommonCircularProgressIndicator()
+        }
     }
 
     if (showDatePicker) {
@@ -235,23 +242,24 @@ fun SchedulerScreen(
             }
         )
     }
-
-    if (state.isLoading) {
-        CommonCircularProgressIndicator(modifier = modifier)
-    }
 }
 
 
 @Composable
-private fun AppSection(scheduleAppInfo: ScheduleAppInfoUi?) {
-    scheduleAppInfo?.let {
-        Text(
-            text = stringResource(R.string.app),
-            style = MaterialTheme.typography.titleMedium,
-            textAlign = TextAlign.Start
-        )
+private fun AppSection(
+    scheduleAppInfo: ScheduleAppInfoUi?,
+    modifier: Modifier = Modifier
+) {
+    Column(modifier = modifier) {
+        scheduleAppInfo?.let {
+            Text(
+                text = stringResource(R.string.app),
+                style = MaterialTheme.typography.titleMedium,
+                textAlign = TextAlign.Start
+            )
 
-        InstalledAppItem(app = scheduleAppInfo.toDeviceAppInfo())
+            InstalledAppItem(app = scheduleAppInfo.toDeviceAppInfo())
+        }
     }
 }
 
@@ -260,13 +268,14 @@ private fun ActionButtons(
     onSave: () -> Unit,
     onCancel: () -> Unit,
     state: ScheduleContract.State,
+    modifier: Modifier = Modifier,
 ) {
     val coroutineScope = rememberCoroutineScope()
     val debouncedSave = remember { onSave.debounce(coroutineScope) }
     val debouncedCancel = remember { onCancel.debounce(coroutineScope) }
 
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically
     ) {

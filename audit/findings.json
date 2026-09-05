@@ -484,7 +484,8 @@
       "effort": "M",
       "verified": true,
       "verification_method": "Read every cited composable signature.",
-      "status": "open"
+      "status": "fixed",
+      "fix_note": "Added modifier: Modifier = Modifier (defaulted, applied to root) to: InstalledAppItem (DeviceAppItem.kt), ScheduledAppItem, AppSection and ActionButtons (SchedulerScreen.kt), CommonAlertDialog, DatePickerDialog, TimePickerDialog, and OverlayPermissionDialog (MainActivity.kt). AppSection was also wrapped in a Column since it previously emitted two sibling nodes (Text + InstalledAppItem) with no single root. Also fixed the more substantive half of this finding: SchedulerScreen applied the same caller-supplied modifier to two sibling nodes (the Column and, independently, the loading indicator) - now both live inside one Box that owns the modifier once. AppSchedulerNavHost now applies its modifier to NavDisplay (verified via javap that NavDisplay accepts Modifier as its 2nd param) instead of forwarding an unused-at-that-level modifier into all three screen routes. DeviceAppsListScreen's InstalledAppsList was already fixed in the earlier batch. Verified with assembleDebug, lintDebug, testDebugUnitTest, and assembleRelease (R8), all green."
     },
     {
       "id": "MED-E",

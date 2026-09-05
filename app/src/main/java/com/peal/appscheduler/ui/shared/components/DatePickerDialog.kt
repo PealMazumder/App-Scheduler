@@ -8,6 +8,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.peal.appscheduler.R
 import java.time.Instant
@@ -24,6 +25,7 @@ fun DatePickerDialog(
     onDismissRequest: () -> Unit,
     onDateSelected: (LocalDate) -> Unit,
     initialSelectedDateMillis: Long? = null,
+    modifier: Modifier = Modifier,
 ) {
     val todayMillis = System.currentTimeMillis()
 
@@ -42,6 +44,7 @@ fun DatePickerDialog(
     )
 
     DatePickerDialog(
+        modifier = modifier,
         onDismissRequest = onDismissRequest,
         confirmButton = {
             TextButton(onClick = {
