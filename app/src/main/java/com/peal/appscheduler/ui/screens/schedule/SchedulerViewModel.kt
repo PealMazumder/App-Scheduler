@@ -1,5 +1,6 @@
 package com.peal.appscheduler.ui.screens.schedule
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.peal.appscheduler.core.domain.util.ScheduleError
@@ -36,18 +37,44 @@ import javax.inject.Inject
 class SchedulerViewModel @Inject constructor(
     private val scheduleAppUseCase: ScheduleAppUseCase,
     private val cancelScheduledAppUseCase: CancelScheduledAppUseCase,
+    private val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
     private val _schedulerScreenState = MutableStateFlow(ScheduleContract.State())
     val schedulerScreenState: StateFlow<ScheduleContract.State> = _schedulerScreenState
 
-    private var selectedDate: LocalDate? = null
-    private var selectedTime: LocalTime? = null
+    // Backed by SavedStateHandle (as ISO date/time strings) so an in-progress pick survives
+    // process death, instead of being silently lost like a plain instance var would be.
+    private var selectedDate: LocalDate?
+        get() = savedStateHandle.get<String>(KEY_SELECTED_DATE)?.let(LocalDate::parse)
+        set(value) {
+            savedStateHandle[KEY_SELECTED_DATE] = value?.toString()
+        }
+
+    private var selectedTime: LocalTime?
+        get() = savedStateHandle.get<String>(KEY_SELECTED_TIME)?.let(LocalTime::parse)
+        set(value) {
+            savedStateHandle[KEY_SELECTED_TIME] = value?.toString()
+        }
 
     private val _effect = Channel<ScheduleContract.Effect>(Channel.BUFFERED)
     val effect = _effect.receiveAsFlow()
 
     private var previousScheduleTimeInMilli: Long? = null
+
+    init {
+        // Restore the displayed picker text for a pending, unsaved selection that survived
+        // process death - updateAppInfo() below must not clobber it with the original nav-provided
+        // time before the user gets a chance to save it.
+        if (selectedDate != null || selectedTime != null) {
+            _schedulerScreenState.update {
+                it.copy(
+                    selectedDate = selectedDate?.toFormattedDate(),
+                    selectedTime = selectedTime?.toFormattedTime()
+                )
+            }
+        }
+    }
 
     fun updateAppInfo(scheduleAppInfo: ScheduleAppInfoUi?) {
         _schedulerScreenState.update {
@@ -62,6 +89,11 @@ class SchedulerViewModel @Inject constructor(
 
     private fun updateScheduleTime(time: Long?) {
         previousScheduleTimeInMilli = time
+
+        // Don't overwrite a pending, unsaved selection (e.g. one restored after process death)
+        // with the original nav-provided time.
+        if (selectedDate != null || selectedTime != null) return
+
         _schedulerScreenState.update {
             it.copy(
                 selectedDate = time?.toFormattedPattern(),
@@ -190,6 +222,9 @@ class SchedulerViewModel @Inject constructor(
         }
     }
 
-
+    private companion object {
+        const val KEY_SELECTED_DATE = "selected_date"
+        const val KEY_SELECTED_TIME = "selected_time"
+    }
 }
 

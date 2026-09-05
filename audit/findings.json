@@ -521,8 +521,8 @@
       "effort": "M",
       "verified": true,
       "verification_method": "Read all four sites.",
-      "status": "in_progress",
-      "fix_note": "Partial: DatabaseModule providers now @Singleton, and MainActivity's lifecycle observer was replaced with a one-time LaunchedEffect(Unit) rather than fixed to remove itself. NOT addressed: SavedStateHandle was deleted from SchedulerViewModel instead of used, so the form is still wiped on process death; selectedDate/selectedTime private vars still duplicate the StateFlow's string fields."
+      "status": "fixed",
+      "fix_note": "Finished the remaining half of this finding. Re-injected SavedStateHandle into SchedulerViewModel and backed selectedDate/selectedTime with it (stored as ISO date/time strings) instead of plain instance vars, so a pending unsaved pick survives process death. Also guarded updateScheduleTime() so it does not clobber a restored pending selection with the original nav-provided time on VM recreation, and populate the displayed picker text from the restored selection in init{}. The DB @Singleton scoping and the lifecycle-observer fix (now a one-time LaunchedEffect) from the earlier batch already covered the other two symptoms in this finding. Not verified with an actual process-death test (adb shell am kill / 'Don't keep activities') - no device attached; verified only that the code compiles and the normal (non-restored) flow is unchanged by re-running the full unit test suite. Unverified: whether Hilt's generated SavedStateHandle actually round-trips these string values through a real process-death cycle end to end."
     },
     {
       "id": "MED-G",
