@@ -14,6 +14,7 @@ hilt = "2.52"
 hiltNav = "1.2.0"
 desugar = "2.0.3"
 roomRuntime = "2.6.1"
+kotlinxCoroutines = "1.9.0"
 archCoreTesting = "2.1.0"
 nav3Core = "1.0.0"
 lifecycleViewmodelNav3 = "2.10.0"
@@ -47,6 +48,7 @@ androidx-room-runtime = { group = "androidx.room", name = "room-runtime", versio
 room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "roomRuntime" }
 room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "roomRuntime" }
 room-testing = { group = "androidx.room", name = "room-testing", version.ref = "roomRuntime" }
+kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "kotlinxCoroutines" }
 arch-core-testing = { group = "androidx.arch.core", name = "core-testing", version.ref = "archCoreTesting" }
 
 androidx-navigation3-runtime = { module = "androidx.navigation3:navigation3-runtime", version.ref = "nav3Core" }

@@ -1,6 +1,5 @@
 package com.peal.appscheduler.domain.utils
 
-import android.util.Log
 import com.peal.appscheduler.utils.DateTimePatterns.MMMM_DD_YYYY
 import com.peal.appscheduler.utils.DateTimePatterns.MMMM_DD_YYYY_TIME_12H
 import com.peal.appscheduler.utils.DateTimePatterns.TIME_12H
@@ -59,7 +58,7 @@ fun String.toLocalTime(pattern: String = TIME_12H): LocalTime? {
         val formatter = DateTimeFormatter.ofPattern(pattern)
         LocalTime.parse(this, formatter)
     } catch (e: Exception) {
-        Log.e("DateTimeUtils", "Failed to parse time: ${e.message}")
+        e.printStackTrace()
         null
     }
 }
@@ -69,7 +68,7 @@ fun String.toLocalDate(pattern: String = MMMM_DD_YYYY): LocalDate? {
         val formatter = DateTimeFormatter.ofPattern(pattern)
         LocalDate.parse(this, formatter)
     } catch (e: Exception) {
-        Log.e("DateTimeUtils", "Failed to parse date: ${e.message}")
+        e.printStackTrace()
         null
     }
 }
