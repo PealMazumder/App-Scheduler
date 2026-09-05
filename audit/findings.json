@@ -432,8 +432,8 @@
       "effort": "S",
       "verified": true,
       "verification_method": "Read all three declarations and confirmed the unused imports.",
-      "status": "open",
-      "fix_note": "NOT actually fixed, despite unused Channel/receiveAsFlow imports being removed from Home/DeviceApps/Scheduler ViewModels during the fix pass. _homeEffect, _effect and the scheduler's _effect are all still MutableSharedFlow() with replay 0 and no extraBufferCapacity in all three ViewModels - the drop-on-no-collector behavior this finding describes is unchanged."
+      "status": "fixed",
+      "fix_note": "Replaced MutableSharedFlow()/asSharedFlow() with Channel(Channel.BUFFERED)/receiveAsFlow() for effects in HomeViewModel, DeviceAppsViewModel, and SchedulerViewModel, and all .emit( call sites with .send(. This is exactly the pattern the dead Channel/receiveAsFlow imports (removed in an earlier fix pass) anticipated. A one-shot navigation/toast effect emitted while the screen is backgrounded is now buffered and delivered when a collector resumes, instead of being silently dropped. Verified: assembleDebug, lintDebug, testDebugUnitTest, and assembleRelease (R8) all green."
     },
     {
       "id": "MED-B",

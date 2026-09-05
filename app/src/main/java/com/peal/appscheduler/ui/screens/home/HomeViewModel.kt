@@ -7,11 +7,11 @@ import com.peal.appscheduler.domain.mappers.toScheduleAppInfoUi
 import com.peal.appscheduler.domain.usecase.GetScheduledAppUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -29,8 +29,8 @@ class HomeViewModel @Inject constructor(
     private val _homeState = MutableStateFlow(HomeContract.State())
     val homeState: StateFlow<HomeContract.State> = _homeState
 
-    private val _homeEffect = MutableSharedFlow<HomeContract.Effect>()
-    val homeEffect get() = _homeEffect.asSharedFlow()
+    private val _homeEffect = Channel<HomeContract.Effect>(Channel.BUFFERED)
+    val homeEffect = _homeEffect.receiveAsFlow()
 
 
     init {
@@ -54,12 +54,12 @@ class HomeViewModel @Inject constructor(
         when (intent) {
             HomeContract.Intent.OnNavigateInstalledApps -> {
                 viewModelScope.launch {
-                    _homeEffect.emit(HomeContract.Effect.NavigateToInstalledApps)
+                    _homeEffect.send(HomeContract.Effect.NavigateToInstalledApps)
                 }
             }
             is HomeContract.Intent.OnNavigateScheduledApps -> {
                 viewModelScope.launch {
-                    _homeEffect.emit(HomeContract.Effect.NavigateToScheduledApps(intent.appInfo))
+                    _homeEffect.send(HomeContract.Effect.NavigateToScheduledApps(intent.appInfo))
                 }
             }
         }
