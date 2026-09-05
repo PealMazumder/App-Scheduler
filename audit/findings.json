@@ -234,7 +234,8 @@
       "effort": "M",
       "verified": false,
       "verification_method": "Static: call chain and dispatcher confirmed by reading. Magnitude needs StrictMode detectDiskReads or a systrace of the Home DB emission.",
-      "status": "open"
+      "status": "fixed",
+      "fix_note": "Wrapped the toScheduleAppInfoUi(context) mapping in HomeViewModel.fetchScheduledApps() with withContext(Dispatchers.IO), since each call does a PackageManager binder round-trip to load an icon. Previously ran on the ViewModel's default Dispatchers.Main.immediate scope, blocking the UI thread on every DB emission. Verified: assembleDebug, lintDebug, testDebugUnitTest, assembleRelease all green. Jank magnitude was never measured (no device) and remains unverified - this fixes the confirmed main-thread violation, not a measured frame-time win."
     },
     {
       "id": "H9",
@@ -250,7 +251,8 @@
       "effort": "M",
       "verified": false,
       "verification_method": "Static: read remember(icon) at :30 and the Canvas path at ImageUtils.kt:18-27. Scroll cost needs adb shell dumpsys gfxinfo com.peal.appscheduler framestats.",
-      "status": "open"
+      "status": "fixed",
+      "fix_note": "AppIcon.kt: replaced remember(icon) { drawableToBitmap(it) } (synchronous, runs during composition on the main thread) with produceState<ImageBitmap?> that calls drawableToBitmap under withContext(Dispatchers.Default). The placeholder background Box now renders immediately and swaps to the real icon once decoded, instead of blocking composition on the Canvas.draw() call. Verified: assembleDebug, lintDebug, testDebugUnitTest, assembleRelease all green. Scroll-jank magnitude was never measured (no device) and remains unverified. Did NOT add a cross-item bitmap cache (a separate, larger change - see H12) so the same icon can still be rasterized more than once across different screens."
     },
     {
       "id": "H10",
@@ -299,7 +301,8 @@
       "effort": "M",
       "verified": false,
       "verification_method": "Static: read the eager map at :30-37 and flowOn(Dispatchers.IO) at :40. Heap cost needs a dump filtered on Bitmap on a device with 150+ launcher apps.",
-      "status": "open"
+      "status": "open",
+      "fix_note": "NOT fixed - deliberately left open. The real fix is lazy per-row icon loading (load names first, decode icons on demand as rows become visible, with a bounded cache) or pagination, which is a UI/data-flow redesign bigger than a 'smallest correct change' for this session, and its benefit (spinner duration, peak memory) can't be verified without a device with 150+ installed apps. Considered and rejected: a simple cross-layer icon cache shared between DeviceAppsRepositoryImpl (data layer) and getAppIconDrawable (ui layer) would require either a new data<->ui dependency or converting a stateless extension function into an injected class - out of proportion for this finding alone. H8 and H9 in this same cluster are fixed; H12's eager-decode-of-everything architecture is unchanged."
     },
     {
       "id": "H13",

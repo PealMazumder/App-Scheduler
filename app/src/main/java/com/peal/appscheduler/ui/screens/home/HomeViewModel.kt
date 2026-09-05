@@ -7,6 +7,7 @@ import com.peal.appscheduler.ui.mappers.toScheduleAppInfoUi
 import com.peal.appscheduler.domain.usecase.GetScheduledAppUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -14,6 +15,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 
@@ -40,10 +42,15 @@ class HomeViewModel @Inject constructor(
     private fun fetchScheduledApps() {
         viewModelScope.launch {
             getScheduledAppUseCase().collectLatest { scheduledApps ->
+                // Mapping loads each app's icon via PackageManager, which is blocking I/O -
+                // keep it off the main thread.
+                val scheduleAppInfos = withContext(Dispatchers.IO) {
+                    scheduledApps.map { it.toScheduleAppInfoUi(context) }
+                }
                 _homeState.update {
                     it.copy(
                         isLoading = false,
-                        scheduledApps = scheduledApps.map { it.toScheduleAppInfoUi(context) }
+                        scheduledApps = scheduleAppInfos
                     )
                 }
             }

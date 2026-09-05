@@ -8,13 +8,17 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import com.peal.appscheduler.ui.utils.ImageUtils.drawableToBitmap
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 
 /**
@@ -27,9 +31,15 @@ fun AppIcon(
     appName: String,
     modifier: Modifier = Modifier
 ) {
-    val bitmap = remember (icon) { icon?.let { drawableToBitmap(it) } }
+    // Rasterizing a Drawable (esp. AdaptiveIconDrawable) can be expensive; keep it off the main
+    // thread instead of doing it synchronously during composition.
+    val iconBitmap by produceState<ImageBitmap?>(initialValue = null, icon) {
+        value = icon?.let {
+            withContext(Dispatchers.Default) { drawableToBitmap(it)?.asImageBitmap() }
+        }
+    }
 
-    bitmap?.asImageBitmap()?.let { imageBitmap ->
+    iconBitmap?.let { imageBitmap ->
         Image(
             bitmap = imageBitmap,
             contentDescription = appName,
