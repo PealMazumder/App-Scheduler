@@ -1,4 +1,4 @@
-name: Android Build and Notify Teams
+name: Android CI
 
 on:
   push:
@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    name: Build APK and Notify Teams
+    name: Build, lint, and test
     runs-on: ubuntu-latest
 
     steps:
@@ -33,63 +33,3 @@ jobs:
         with:
           name: debug-apk
           path: app/build/outputs/apk/debug/app-debug.apk
-
-      - name: Notify Microsoft Teams
-        if: github.event_name == 'push'
-        env:
-          TEAMS_WEBHOOK: ${{ secrets.TEAMS_WEBHOOK_URL }}
-          GH_REPOSITORY: ${{ github.repository }}
-          GH_REF_NAME: ${{ github.ref_name }}
-          GH_SHA: ${{ github.sha }}
-          GH_RUN_ID: ${{ github.run_id }}
-        run: |
-          APK_URL="https://github.com/${GH_REPOSITORY}/actions/runs/${GH_RUN_ID}"
-          PAYLOAD=$(cat <<EOF
-          {
-            "type": "message",
-            "attachments": [
-              {
-                "contentType": "application/vnd.microsoft.card.adaptive",
-                "content": {
-                  "type": "AdaptiveCard",
-                  "body": [
-                    {
-                      "type": "TextBlock",
-                      "size": "Medium",
-                      "weight": "Bolder",
-                      "text": "✅ New Android Build Available"
-                    },
-                    {
-                      "type": "FactSet",
-                      "facts": [
-                        {
-                          "title": "Repository",
-                          "value": "${GH_REPOSITORY}"
-                        },
-                        {
-                          "title": "Branch",
-                          "value": "${GH_REF_NAME}"
-                        },
-                        {
-                          "title": "Commit",
-                          "value": "${GH_SHA}"
-                        }
-                      ]
-                    }
-                  ],
-                  "actions": [
-                    {
-                      "type": "Action.OpenUrl",
-                      "title": "View Build",
-                      "url": "${APK_URL}"
-                    }
-                  ],
-                  "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
-                  "version": "1.2"
-                }
-              }
-            ]
-          }
-          EOF
-          )
-          curl -H "Content-Type: application/json" -d "$PAYLOAD" "$TEAMS_WEBHOOK"
