@@ -50,8 +50,8 @@ import java.time.ZoneId
 import com.peal.appscheduler.R
 import com.peal.appscheduler.core.presentation.util.ObserveAsEvents
 import com.peal.appscheduler.domain.enums.ScheduleStatus
-import com.peal.appscheduler.domain.mappers.toDeviceAppInfo
-import com.peal.appscheduler.domain.mappers.toScheduleAppInfoUi
+import com.peal.appscheduler.ui.mappers.toDeviceAppInfo
+import com.peal.appscheduler.ui.mappers.toScheduleAppInfoUi
 import android.os.Build
 import com.peal.appscheduler.ui.model.ScheduleAppInfoUi
 import com.peal.appscheduler.ui.screens.deviceApps.InstalledAppItem

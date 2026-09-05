@@ -1,4 +1,4 @@
-package com.peal.appscheduler.domain.mappers
+package com.peal.appscheduler.ui.mappers
 
 import android.content.Context
 import com.peal.appscheduler.domain.model.AppSchedule
@@ -7,11 +7,6 @@ import com.peal.appscheduler.domain.utils.formatScheduledTime
 import com.peal.appscheduler.ui.model.ScheduleAppInfoUi
 import com.peal.appscheduler.ui.shared.navigation.AppSchedulerScreen
 import com.peal.appscheduler.ui.utils.getAppIconDrawable
-
-
-/**
- * Created by Peal Mazumder on 24/2/25.
- */
 
 fun AppSchedule.toScheduleAppInfoUi(context: Context): ScheduleAppInfoUi {
     val iconDrawable = context.getAppIconDrawable(this.packageName)
@@ -44,4 +39,3 @@ fun ScheduleAppInfoUi.toDeviceAppInfo() = DeviceAppInfo(
     packageName = this.packageName,
     icon = this.icon
 )
-

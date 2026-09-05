@@ -398,7 +398,8 @@
       "effort": "M",
       "verified": true,
       "verification_method": "Read the import blocks of both files.",
-      "status": "open"
+      "status": "in_progress",
+      "fix_note": "Partial: moved domain/mappers/Mappers.kt (which imported android.content.Context, ui.model.ScheduleAppInfoUi, ui.shared.navigation.AppSchedulerScreen, and ui.utils.getAppIconDrawable) out of the domain layer entirely, to ui/mappers/UiMappers.kt - these three functions are pure UI-model mapping with no business logic and had no reason to be in domain. Updated the two callers (HomeViewModel.kt, SchedulerScreen.kt). Deliberately NOT yet fixed: domain/model/DeviceAppInfo.kt still imports android.graphics.drawable.Drawable and ui.model.ScheduleAppInfoUi - removing the Drawable field is entangled with the H12/H8/H9 icon-loading performance fix (same repository, same model), so it's deferred to that cluster rather than done here as an unrelated diff. Also noted but out of scope for this finding's cited locations: domain/utils/DateTimeExtensions.kt imports android.util.Log (makes parse-failure paths untestable on plain JUnit, tracked under TEST-12); domain/utils/SdkExtensions.kt imports android.os.Build.VERSION_CODES, a value-only platform constant with no Context/instrumentation dependency - left as an acceptable exception. Verified: assembleDebug, lintDebug, testDebugUnitTest, assembleRelease all green."
     },
     {
       "id": "H19",

@@ -3,7 +3,7 @@ package com.peal.appscheduler.ui.screens.home
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.peal.appscheduler.domain.mappers.toScheduleAppInfoUi
+import com.peal.appscheduler.ui.mappers.toScheduleAppInfoUi
 import com.peal.appscheduler.domain.usecase.GetScheduledAppUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
