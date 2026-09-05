@@ -48,7 +48,8 @@
       "effort": "S",
       "verified": true,
       "verification_method": "Read both call sites; confirmed action set at :33 and absent at :52. Runtime confirmation still needs: adb shell dumpsys alarm | grep com.peal.appscheduler before/after a cancel.",
-      "status": "open"
+      "status": "fixed",
+      "fix_note": "Extracted shared buildPendingIntent() used by both scheduleApp and cancelSchedule."
     },
     {
       "id": "C2",
@@ -64,7 +65,8 @@
       "effort": "S",
       "verified": false,
       "verification_method": "Static: confirmed targetSdk 36, startForeground call, and absent manifest attribute. Confirm on an API 34+ emulator: adb reboot then adb logcat | grep MissingForegroundServiceType.",
-      "status": "open"
+      "status": "fixed",
+      "fix_note": "foregroundServiceType=systemExempted declared on RescheduleService, matches startForeground call."
     },
     {
       "id": "C3",
@@ -80,7 +82,8 @@
       "effort": "S",
       "verified": true,
       "verification_method": "Traced ScheduleDao.kt:33 -> ScheduleRepositoryImpl.kt:48 -> RescheduleService.kt:84; confirmed the Flow is a Room @Query observable.",
-      "status": "open"
+      "status": "fixed",
+      "fix_note": "Replaced .collect{} with .first(); stopSelf() now reachable."
     },
     {
       "id": "C4",
@@ -96,7 +99,8 @@
       "effort": "S",
       "verified": true,
       "verification_method": "Read the defaults at CommonAlertDialog.kt:21-23 and confirmed MainActivity.kt:99-112 passes none of them; observer at :53-58 sets showDialog on every ON_RESUME.",
-      "status": "open"
+      "status": "fixed",
+      "fix_note": "showDismissButton/dismissOnBackPress passed; overlay check moved to a one-time LaunchedEffect(Unit)."
     },
     {
       "id": "H1",
@@ -113,7 +117,8 @@
       "effort": "S",
       "verified": true,
       "verification_method": "Read Result.kt to confirm onError returns `this` (so conflict Failures do propagate - the .onError block is dead code, not a data-loss bug) and confirmed both alarm return values are unused.",
-      "status": "open"
+      "status": "fixed",
+      "fix_note": "Alarm-repository Results now checked and propagated; CancellationException rethrown."
     },
     {
       "id": "H2",
@@ -128,7 +133,8 @@
       "effort": "S",
       "verified": true,
       "verification_method": "Grepped the whole source set for ViewModelStoreNavEntryDecorator - zero hits; read NavigationState.kt:31-35.",
-      "status": "open"
+      "status": "fixed",
+      "fix_note": "rememberViewModelStoreNavEntryDecorator() added to NavigationState.toEntries."
     },
     {
       "id": "H3",
@@ -143,7 +149,8 @@
       "effort": "S",
       "verified": true,
       "verification_method": "Traced both early-return paths at :58-71 and :73-84 into updateScheduleStatus(:160-175).",
-      "status": "open"
+      "status": "fixed",
+      "fix_note": "stopSelf() moved outside the scheduleId null/-1 guard."
     },
     {
       "id": "H4",
@@ -159,7 +166,8 @@
       "effort": "M",
       "verified": true,
       "verification_method": "Read the receiver's action branches and the manifest's exported flag and intent-filter.",
-      "status": "open"
+      "status": "fixed",
+      "fix_note": "AppSchedulerReceiver now rejects ACTION_SCHEDULE_APP intents whose package != context.packageName."
     },
     {
       "id": "H5",
@@ -175,7 +183,8 @@
       "effort": "S",
       "verified": false,
       "verification_method": "Static: manifest read and matched against the documented exemption categories. Confirm via a Play Console declaration attempt and an API 34+ device.",
-      "status": "open"
+      "status": "open",
+      "fix_note": "Likely FALSE POSITIVE, found during re-verification: android docs (kb://android/develop/background-work/services/fgs/service-types) list 'Apps holding SCHEDULE_EXACT_ALARM or USE_EXACT_ALARM permission' as a qualifying criterion for the systemExempted foreground service type. This app declares and requires SCHEDULE_EXACT_ALARM, so it likely does qualify. Left status=open pending a human decision on whether to keep systemExempted or switch RescheduleService to shortService/specialUse as AppLaunchService was."
     },
     {
       "id": "H6",
@@ -207,7 +216,8 @@
       "effort": "S",
       "verified": true,
       "verification_method": "Read the call site; behaviour follows the documented AlarmManager contract.",
-      "status": "open"
+      "status": "fixed",
+      "fix_note": "setExact replaced with setExactAndAllowWhileIdle."
     },
     {
       "id": "H8",
@@ -256,7 +266,8 @@
       "effort": "S",
       "verified": true,
       "verification_method": "Read the catch block and the exhaustive-less when; confirmed no else and no error state in the contract.",
-      "status": "open"
+      "status": "fixed",
+      "fix_note": "DeviceAppsContract.State gained errorMessage; catch block populates it and clears isLoading; UI branches on it."
     },
     {
       "id": "H11",
@@ -271,7 +282,8 @@
       "effort": "S",
       "verified": true,
       "verification_method": "Compared the three SDK guards directly; confirmed the inconsistency.",
-      "status": "open"
+      "status": "fixed",
+      "fix_note": "SchedulerScreen's exact-alarm check now gates on Build.VERSION_CODES.S (31), matching AlarmManagerWrapper/ContextExt."
     },
     {
       "id": "H12",
@@ -320,7 +332,8 @@
       "effort": "M",
       "verified": true,
       "verification_method": "Confirmed the KSP warning in the build log and the absence of app/schemas/ and any Migration class.",
-      "status": "open"
+      "status": "fixed",
+      "fix_note": "exportSchema=true, room.schemaLocation configured, app/schemas/ committed, fallbackToDestructiveMigration() as interim safety net (not a real migration)."
     },
     {
       "id": "H15",
@@ -335,7 +348,8 @@
       "effort": "M",
       "verified": true,
       "verification_method": "Read the release build type; verified assembleRelease produced app-release-unsigned.apk with no R8 task in the build log.",
-      "status": "open"
+      "status": "fixed",
+      "fix_note": "isMinifyEnabled=true, isShrinkResources=true; assembleRelease verified green, 12.1MB -> 1.78MB unsigned APK. Signing config and AAB target still absent."
     },
     {
       "id": "H16",
@@ -350,7 +364,8 @@
       "effort": "S",
       "verified": true,
       "verification_method": "Confirmed the dependency declaration and that only Icons.Filled.Add and Icons.Default.DateRange are referenced.",
-      "status": "open"
+      "status": "fixed",
+      "fix_note": "Replaced material-icons-extended with material-icons-core (the only 2 icons used, Icons.Filled.Add and Icons.Default.DateRange, are both in core). Verified via assembleRelease -> dependency tree resolves material-icons-core 1.7.6, no material-icons-extended present."
     },
     {
       "id": "H17",
@@ -366,7 +381,8 @@
       "effort": "S",
       "verified": true,
       "verification_method": "Confirmed the version catalog pins and the BOM declaration coexist in app/build.gradle.kts.",
-      "status": "open"
+      "status": "fixed",
+      "fix_note": "Removed the separate material3 version pin so it resolves via the Compose BOM, matching every other Compose artifact in libs.versions.toml. Bumped the BOM from 2024.04.01 (material3 1.0.1, predates androidx.compose.material3.ripple) to 2024.12.01 (material3 1.3.1) - the smallest bump that compiles the existing ripple() usage in ScheduledAppItem.kt. Did NOT bump to the latest BOM (2026.08.00, material3 1.4.0): that requires compileSdk 37 / AGP 9.1+, and an intermediate try (2026.06.01) crashed lintDebug's Kotlin analysis engine against the pinned Kotlin 2.0.0 compiler - both are much larger changes than this finding warrants. Verified with assembleDebug, lintDebug, testDebugUnitTest, and assembleRelease, all green; dependency tree confirms one coherent set (material3 1.3.1, material-icons-core 1.7.6) with no stray pinned Compose version."
     },
     {
       "id": "H18",
@@ -398,7 +414,8 @@
       "effort": "S",
       "verified": true,
       "verification_method": "Read both picker constructors and the post-hoc validation branch in the ViewModel.",
-      "status": "open"
+      "status": "fixed",
+      "fix_note": "DatePickerDialog/rememberDatePickerState given a SelectableDates that rejects days before today."
     },
     {
       "id": "MED-A",
@@ -415,7 +432,8 @@
       "effort": "S",
       "verified": true,
       "verification_method": "Read all three declarations and confirmed the unused imports.",
-      "status": "open"
+      "status": "open",
+      "fix_note": "NOT actually fixed, despite unused Channel/receiveAsFlow imports being removed from Home/DeviceApps/Scheduler ViewModels during the fix pass. _homeEffect, _effect and the scheduler's _effect are all still MutableSharedFlow() with replay 0 and no extraBufferCapacity in all three ViewModels - the drop-on-no-collector behavior this finding describes is unchanged."
     },
     {
       "id": "MED-B",
@@ -431,7 +449,8 @@
       "effort": "S",
       "verified": true,
       "verification_method": "Read both effect-collection blocks.",
-      "status": "open"
+      "status": "fixed",
+      "fix_note": "HomeScreen and DeviceAppsListScreen now use ObserveAsEvents instead of raw LaunchedEffect(Unit)."
     },
     {
       "id": "MED-C",
@@ -446,7 +465,8 @@
       "effort": "S",
       "verified": true,
       "verification_method": "Read the helper in full.",
-      "status": "open"
+      "status": "fixed",
+      "fix_note": "ObserveAsEvents now wraps onEvent in rememberUpdatedState instead of the lifecycle owner."
     },
     {
       "id": "MED-D",
@@ -499,7 +519,8 @@
       "effort": "M",
       "verified": true,
       "verification_method": "Read all four sites.",
-      "status": "open"
+      "status": "in_progress",
+      "fix_note": "Partial: DatabaseModule providers now @Singleton, and MainActivity's lifecycle observer was replaced with a one-time LaunchedEffect(Unit) rather than fixed to remove itself. NOT addressed: SavedStateHandle was deleted from SchedulerViewModel instead of used, so the form is still wiped on process death; selectedDate/selectedTime private vars still duplicate the StateFlow's string fields."
     },
     {
       "id": "MED-G",
@@ -566,7 +587,8 @@
       "effort": "S",
       "verified": true,
       "verification_method": "Read the picker and its call site at SchedulerScreen.kt:209-217.",
-      "status": "open"
+      "status": "fixed",
+      "fix_note": "initialSelectedDateMillis wired at the SchedulerScreen call site, derived from scheduledAppInfo.utcScheduleTime."
     }
   ]
 }
