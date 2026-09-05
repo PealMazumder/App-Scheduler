@@ -502,7 +502,8 @@
       "effort": "M",
       "verified": true,
       "verification_method": "Read every cited site; contrast computed from #888888 on #FFFFFF.",
-      "status": "open"
+      "status": "fixed",
+      "fix_note": "Added role = Role.Button to the clickable Rows in ScheduledAppItem, InstalledAppItem, and both SchedulerScreen date/time picker rows, plus Modifier.semantics(mergeDescendants = true) {} on each so TalkBack announces the whole row as one button instead of several loose text nodes. Added heightIn(min = 48.dp) to the two SchedulerScreen picker rows, which had no enforced minimum height. Replaced Color.Gray in DeviceAppItem.kt with MaterialTheme.colorScheme.onSurfaceVariant, matching the pattern ScheduledAppItem.kt already used correctly - fixes the sub-4.5:1 contrast ratio and makes the color theme-aware (dark mode, dynamic color). Verified with assembleDebug, lintDebug, testDebugUnitTest, and assembleRelease, all green. Not independently verified with TalkBack or Accessibility Scanner - no device attached."
     },
     {
       "id": "MED-F",

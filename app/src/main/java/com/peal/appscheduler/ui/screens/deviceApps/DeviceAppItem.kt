@@ -9,9 +9,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -32,7 +34,8 @@ fun InstalledAppItem(
         modifier = modifier
             .fillMaxWidth()
             .padding(10.dp)
-            .clickable {
+            .semantics(mergeDescendants = true) {}
+            .clickable(role = Role.Button) {
                 onClick.invoke(app)
             },
         verticalAlignment = Alignment.CenterVertically
@@ -46,7 +49,7 @@ fun InstalledAppItem(
 
         Column {
             Text(text = app.name, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-            Text(text = app.packageName, fontSize = 14.sp, color = Color.Gray)
+            Text(text = app.packageName, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
