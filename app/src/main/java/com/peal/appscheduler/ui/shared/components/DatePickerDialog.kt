@@ -24,8 +24,8 @@ import java.time.ZoneId
 fun DatePickerDialog(
     onDismissRequest: () -> Unit,
     onDateSelected: (LocalDate) -> Unit,
-    initialSelectedDateMillis: Long? = null,
     modifier: Modifier = Modifier,
+    initialSelectedDateMillis: Long? = null,
 ) {
     val todayMillis = System.currentTimeMillis()
 

@@ -14,6 +14,7 @@ object DeviceAppsContract {
 
     sealed class Intent {
         data class OnNavigateScheduler(val data: DeviceAppInfo) : Intent()
+        data object Retry : Intent()
     }
 
     sealed class Effect {

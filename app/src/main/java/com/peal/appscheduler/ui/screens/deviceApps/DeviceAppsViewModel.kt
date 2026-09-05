@@ -68,6 +68,10 @@ class DeviceAppsViewModel @Inject constructor(
                     )
                 }
             }
+
+            is DeviceAppsContract.Intent.Retry -> {
+                loadInstalledApps()
+            }
         }
     }
 }

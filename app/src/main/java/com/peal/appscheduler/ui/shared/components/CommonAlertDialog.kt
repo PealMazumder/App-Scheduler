@@ -19,12 +19,12 @@ fun CommonAlertDialog(
     title: String,
     message: String,
     confirmText: String,
-    showDismissButton: Boolean = false,
-    dismissOnBackPress: Boolean = false,
-    dismissOnClickOutside: Boolean = false,
     onConfirm: () -> Unit,
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
+    showDismissButton: Boolean = false,
+    dismissOnBackPress: Boolean = false,
+    dismissOnClickOutside: Boolean = false,
 ) {
     AlertDialog(
         modifier = modifier,

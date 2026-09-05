@@ -40,7 +40,8 @@ fun AppSchedulerNavHost(
 
         entry<AppSchedulerScreen> { key ->
             SchedulerScreenRoute(
-                route = key
+                route = key,
+                onBack = { navigator.goBack() },
             )
         }
     }

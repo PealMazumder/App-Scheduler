@@ -2,24 +2,36 @@ package com.peal.appscheduler.ui.screens.schedule
 
 import android.app.AlarmManager
 import android.content.Context
-import android.widget.Toast
+import android.os.Build
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -32,12 +44,14 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -45,18 +59,14 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import java.time.Instant
-import java.time.ZoneId
 import com.peal.appscheduler.R
 import com.peal.appscheduler.core.presentation.util.ObserveAsEvents
 import com.peal.appscheduler.domain.enums.ScheduleStatus
-import com.peal.appscheduler.ui.mappers.toDeviceAppInfo
 import com.peal.appscheduler.ui.mappers.toScheduleAppInfoUi
-import android.os.Build
 import com.peal.appscheduler.ui.model.ScheduleAppInfoUi
-import com.peal.appscheduler.ui.screens.deviceApps.InstalledAppItem
+import com.peal.appscheduler.ui.shared.components.AppIcon
+import com.peal.appscheduler.ui.shared.components.AppTopBar
 import com.peal.appscheduler.ui.shared.components.CommonAlertDialog
-import com.peal.appscheduler.ui.shared.components.CommonCircularProgressIndicator
 import com.peal.appscheduler.ui.shared.components.DatePickerDialog
 import com.peal.appscheduler.ui.shared.components.TimePickerDialog
 import com.peal.appscheduler.ui.shared.navigation.AppSchedulerScreen
@@ -64,19 +74,21 @@ import com.peal.appscheduler.ui.utils.debounce
 import com.peal.appscheduler.ui.utils.openScheduleExactAlarmPermissionSettings
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.launch
+import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
-
+import java.time.ZoneId
 
 /**
  * Created by Peal Mazumder on 23/2/25.
  */
 
-
 @Composable
 fun SchedulerScreenRoute(
     modifier: Modifier = Modifier,
     route: AppSchedulerScreen,
+    onBack: () -> Unit = {},
     schedulerViewModel: SchedulerViewModel = hiltViewModel(),
 ) {
     val schedulerScreenState by schedulerViewModel.schedulerScreenState.collectAsStateWithLifecycle()
@@ -96,16 +108,19 @@ fun SchedulerScreenRoute(
         event = schedulerViewModel.effect,
         onIntent = { intent ->
             schedulerViewModel.handleIntent(intent)
-        }
+        },
+        onBack = onBack,
     )
-
 }
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SchedulerScreen(
     modifier: Modifier = Modifier,
     state: ScheduleContract.State,
     event: Flow<ScheduleContract.Effect>,
     onIntent: (ScheduleContract.Intent) -> Unit = {},
+    onBack: () -> Unit = {},
 ) {
     val context = LocalContext.current
     var showDatePicker by rememberSaveable { mutableStateOf(false) }
@@ -130,7 +145,8 @@ fun SchedulerScreen(
         }
     }
 
-    HandleSchedulerEvents(events = event, context = context)
+    val snackbarHostState = remember { SnackbarHostState() }
+    HandleSchedulerEvents(events = event, snackbarHostState = snackbarHostState)
 
     if (showPermissionDialog) {
         CommonAlertDialog(
@@ -145,76 +161,61 @@ fun SchedulerScreen(
         )
     }
 
-    Box(modifier = modifier.fillMaxSize()) {
+    Scaffold(
+        modifier = modifier,
+        topBar = {
+            AppTopBar(
+                title = stringResource(
+                    if (state.isEditable) R.string.edit_schedule_title else R.string.new_schedule_title
+                ),
+                onBack = onBack,
+            )
+        },
+        snackbarHost = {
+            SnackbarHost(snackbarHostState) { data ->
+                Snackbar(snackbarData = data)
+            }
+        },
+        bottomBar = {
+            ActionButtons(
+                onSave = { onIntent(ScheduleContract.Intent.ScheduleApp) },
+                onCancel = { onIntent(ScheduleContract.Intent.CancelSchedule) },
+                state = state,
+            )
+        }
+    ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .padding(paddingValues)
+                .verticalScroll(rememberScrollState())
                 .padding(16.dp),
-            horizontalAlignment = Alignment.Start,
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
+            state.scheduledAppInfo?.let { SelectedAppCard(it) }
 
-            AppSection(state.scheduledAppInfo)
-
-        Text(
-            text = stringResource(R.string.scheduling),
-            style = MaterialTheme.typography.titleMedium
-        )
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(min = 48.dp)
-                .semantics(mergeDescendants = true) {}
-                .clickable(role = Role.Button) { showTimePicker = true },
-            horizontalArrangement = Arrangement.Start,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                painter = painterResource(id = R.drawable.clock_24),
-                contentDescription = stringResource(R.string.select_time)
-            )
-            Spacer(modifier = Modifier.width(8.dp))
             Text(
-                text = state.selectedTime ?: stringResource(R.string.select_time),
-                style = MaterialTheme.typography.bodyLarge
+                text = stringResource(R.string.scheduling),
+                style = MaterialTheme.typography.titleMedium
             )
-        }
 
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                ScheduleFieldRow(
+                    iconPainter = painterResource(id = R.drawable.clock_24),
+                    label = state.selectedTime ?: stringResource(R.string.select_time),
+                    isPlaceholder = state.selectedTime == null,
+                    contentDescription = stringResource(R.string.select_time),
+                    onClick = { showTimePicker = true },
+                )
 
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(min = 48.dp)
-                .semantics(mergeDescendants = true) {}
-                .clickable(role = Role.Button) { showDatePicker = true },
-            horizontalArrangement = Arrangement.Start,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = Icons.Default.DateRange,
-                contentDescription = stringResource(R.string.select_date),
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = state.selectedDate ?: stringResource(R.string.select_date),
-                style = MaterialTheme.typography.bodyLarge
-            )
-        }
-
-        ActionButtons(
-            onSave = {
-                onIntent.invoke(ScheduleContract.Intent.ScheduleApp)
-            },
-            onCancel = {
-                onIntent.invoke(ScheduleContract.Intent.CancelSchedule)
-            },
-            state
-        )
-        }
-
-        if (state.isLoading) {
-            CommonCircularProgressIndicator()
+                ScheduleFieldRow(
+                    icon = Icons.Filled.DateRange,
+                    label = state.selectedDate ?: stringResource(R.string.select_date),
+                    isPlaceholder = state.selectedDate == null,
+                    contentDescription = stringResource(R.string.select_date),
+                    onClick = { showDatePicker = true },
+                )
+            }
         }
     }
 
@@ -251,21 +252,82 @@ fun SchedulerScreen(
     }
 }
 
+@Composable
+private fun SelectedAppCard(
+    scheduleAppInfo: ScheduleAppInfoUi,
+    modifier: Modifier = Modifier,
+) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.large,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            AppIcon(icon = scheduleAppInfo.icon, appName = scheduleAppInfo.name)
+            Spacer(modifier = Modifier.width(16.dp))
+            Column {
+                Text(text = scheduleAppInfo.name, style = MaterialTheme.typography.titleMedium)
+                Text(
+                    text = scheduleAppInfo.packageName,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+    }
+}
 
 @Composable
-private fun AppSection(
-    scheduleAppInfo: ScheduleAppInfoUi?,
-    modifier: Modifier = Modifier
+private fun ScheduleFieldRow(
+    label: String,
+    isPlaceholder: Boolean,
+    contentDescription: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    icon: ImageVector? = null,
+    iconPainter: Painter? = null,
 ) {
-    Column(modifier = modifier) {
-        scheduleAppInfo?.let {
+    Surface(
+        modifier = modifier
+            .fillMaxWidth()
+            .semantics(mergeDescendants = true) {
+                role = Role.Button
+            }
+            .clickable(onClickLabel = contentDescription, onClick = onClick),
+        shape = MaterialTheme.shapes.large,
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 14.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            if (icon != null) {
+                Icon(imageVector = icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+            } else if (iconPainter != null) {
+                Icon(painter = iconPainter, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+            }
+
             Text(
-                text = stringResource(R.string.app),
-                style = MaterialTheme.typography.titleMedium,
-                textAlign = TextAlign.Start
+                text = label,
+                style = MaterialTheme.typography.bodyLarge,
+                color = if (isPlaceholder) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.weight(1f)
             )
 
-            InstalledAppItem(app = scheduleAppInfo.toDeviceAppInfo())
+            Icon(
+                imageVector = Icons.Filled.KeyboardArrowRight,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(20.dp)
+            )
         }
     }
 }
@@ -280,113 +342,72 @@ private fun ActionButtons(
     val coroutineScope = rememberCoroutineScope()
     val debouncedSave = remember { onSave.debounce(coroutineScope) }
     val debouncedCancel = remember { onCancel.debounce(coroutineScope) }
+    val showCancel = state.isEditable && state.scheduledAppInfo?.status == ScheduleStatus.SCHEDULED.name
 
-    Row(
+    Surface(
         modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically
+        color = MaterialTheme.colorScheme.surfaceContainer,
     ) {
-        if (state.isEditable && state.scheduledAppInfo?.status == ScheduleStatus.SCHEDULED.name) {
-            Button(
-                onClick = debouncedCancel,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.secondary
-                )
-            ) {
-                Text(stringResource(R.string.cancel))
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            if (showCancel) {
+                OutlinedButton(
+                    onClick = debouncedCancel,
+                    enabled = !state.isLoading,
+                    modifier = Modifier.weight(1f),
+                ) {
+                    Text(stringResource(R.string.cancel))
+                }
             }
 
-            Spacer(modifier = Modifier.width(16.dp))
-        }
-
-        Button(
-            onClick = debouncedSave,
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.primary
-            )
-        ) {
-            Text(stringResource(R.string.save))
+            Button(
+                onClick = debouncedSave,
+                enabled = !state.isLoading,
+                modifier = Modifier.weight(1f),
+            ) {
+                if (state.isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(18.dp),
+                        strokeWidth = 2.dp,
+                        color = MaterialTheme.colorScheme.onPrimary,
+                    )
+                } else {
+                    Text(stringResource(R.string.save))
+                }
+            }
         }
     }
 }
-
 
 @Composable
 private fun HandleSchedulerEvents(
     events: Flow<ScheduleContract.Effect>,
-    context: Context
+    snackbarHostState: SnackbarHostState,
 ) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+
+    fun showMessage(resId: Int) {
+        scope.launch { snackbarHostState.showSnackbar(context.getString(resId)) }
+    }
+
     ObserveAsEvents(events = events) { event ->
         when (event) {
-            is ScheduleContract.Effect.AppScheduled -> {
-                Toast.makeText(
-                    context,
-                    context.getString(R.string.app_scheduled_successfully),
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
-
-            is ScheduleContract.Effect.TimeConflict -> {
-                Toast.makeText(
-                    context,
-                    context.getString(R.string.an_app_is_already_scheduled_at_this_time),
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
-
-            is ScheduleContract.Effect.UnknownError -> {
-                Toast.makeText(
-                    context,
-                    context.getString(R.string.an_unexpected_error_occurred_please_try_again),
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
-
-            is ScheduleContract.Effect.MissingDateTime -> {
-                Toast.makeText(
-                    context,
-                    context.getString(R.string.select_both_date_and_time_to_schedule),
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
-
-            is ScheduleContract.Effect.PastDateTime -> {
-                Toast.makeText(
-                    context,
-                    context.getString(R.string.please_select_a_future_date_and_time),
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
-
-            is ScheduleContract.Effect.PreviousDateTime -> {
-                Toast.makeText(
-                    context,
-                    context.getString(R.string.select_another_future_date_and_time),
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
-
-            is ScheduleContract.Effect.ScheduleCancelled -> {
-                Toast.makeText(
-                    context,
-                    context.getString(R.string.schedule_cancelled_successfully),
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
-
-            is ScheduleContract.Effect.ScheduleAlreadyHandled -> {
-                Toast.makeText(
-                    context,
-                    context.getString(R.string.ah_schedule_already_handled),
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
+            is ScheduleContract.Effect.AppScheduled -> showMessage(R.string.app_scheduled_successfully)
+            is ScheduleContract.Effect.TimeConflict -> showMessage(R.string.an_app_is_already_scheduled_at_this_time)
+            is ScheduleContract.Effect.UnknownError -> showMessage(R.string.an_unexpected_error_occurred_please_try_again)
+            is ScheduleContract.Effect.MissingDateTime -> showMessage(R.string.select_both_date_and_time_to_schedule)
+            is ScheduleContract.Effect.PastDateTime -> showMessage(R.string.please_select_a_future_date_and_time)
+            is ScheduleContract.Effect.PreviousDateTime -> showMessage(R.string.select_another_future_date_and_time)
+            is ScheduleContract.Effect.ScheduleCancelled -> showMessage(R.string.schedule_cancelled_successfully)
+            is ScheduleContract.Effect.ScheduleAlreadyHandled -> showMessage(R.string.ah_schedule_already_handled)
         }
     }
 }
-
-
-
 
 @Preview(showBackground = true)
 @Composable
@@ -403,8 +424,6 @@ fun SchedulerScreenPreview() {
             selectedDate = LocalDate.now().toString(),
             selectedTime = LocalTime.now().toString()
         ),
-        event = flow {  },
+        event = flow { },
     )
 }
-
-

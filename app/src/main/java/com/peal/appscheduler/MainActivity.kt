@@ -12,8 +12,6 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -62,11 +60,7 @@ class MainActivity : ComponentActivity() {
                     )
                 }
 
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    AppSchedulerNavHost(
-                        modifier = Modifier.padding(innerPadding),
-                    )
-                }
+                AppSchedulerNavHost(modifier = Modifier.fillMaxSize())
             }
         }
     }
