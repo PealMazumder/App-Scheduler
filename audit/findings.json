@@ -183,8 +183,8 @@
       "effort": "S",
       "verified": false,
       "verification_method": "Static: manifest read and matched against the documented exemption categories. Confirm via a Play Console declaration attempt and an API 34+ device.",
-      "status": "open",
-      "fix_note": "Likely FALSE POSITIVE, found during re-verification: android docs (kb://android/develop/background-work/services/fgs/service-types) list 'Apps holding SCHEDULE_EXACT_ALARM or USE_EXACT_ALARM permission' as a qualifying criterion for the systemExempted foreground service type. This app declares and requires SCHEDULE_EXACT_ALARM, so it likely does qualify. Left status=open pending a human decision on whether to keep systemExempted or switch RescheduleService to shortService/specialUse as AppLaunchService was."
+      "status": "wontfix",
+      "fix_note": "Confirmed FALSE POSITIVE via android docs (kb://android/develop/background-work/services/fgs/service-types): the systemExempted foreground service type's documented qualifying criteria explicitly include 'Apps holding SCHEDULE_EXACT_ALARM or USE_EXACT_ALARM permission'. This app declares SCHEDULE_EXACT_ALARM (AndroidManifest.xml:6) and requires it for its core function (AlarmManagerWrapper.kt:46). RescheduleService legitimately qualifies for systemExempted; no code change made. The original security phase could not reach the docs KB and flagged this from memory (see audit/04-security.md caveats)."
     },
     {
       "id": "H6",
@@ -554,7 +554,8 @@
       "effort": "S",
       "verified": true,
       "verification_method": "Grepped for usages; read the function body and confirmed the identity.",
-      "status": "open"
+      "status": "fixed",
+      "fix_note": "Deleted SharedDeviceAppViewModel.kt (zero references anywhere) and its now-empty directory. The stale Nav2 imports and unremembered entryProvider cited in this finding were already removed in the earlier fix batch (see commit b1106a3)."
     },
     {
       "id": "LOW-B",
@@ -572,7 +573,8 @@
       "effort": "S",
       "verified": true,
       "verification_method": "Read each cited line.",
-      "status": "open"
+      "status": "fixed",
+      "fix_note": "Wrapped the last remaining item - unremembered getSystemService(ALARM_SERVICE) in SchedulerScreen.kt - in remember(context). The other items in this cluster (duplicated LaunchedEffect, items() without key, hardcoded OK/Cancel strings, artificial delay(500)) were already resolved as side effects of other fixes in commit b1106a3."
     },
     {
       "id": "MED-H",

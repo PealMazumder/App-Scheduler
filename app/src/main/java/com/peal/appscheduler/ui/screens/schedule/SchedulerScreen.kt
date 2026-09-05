@@ -106,7 +106,7 @@ fun SchedulerScreen(
     val context = LocalContext.current
     var showDatePicker by rememberSaveable { mutableStateOf(false) }
     var showTimePicker by rememberSaveable { mutableStateOf(false) }
-    val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+    val alarmManager = remember(context) { context.getSystemService(Context.ALARM_SERVICE) as AlarmManager }
 
     var showPermissionDialog by remember { mutableStateOf(false) }
     val lifecycleOwner = LocalLifecycleOwner.current
