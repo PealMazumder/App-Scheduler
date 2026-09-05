@@ -201,7 +201,8 @@
       "effort": "M",
       "verified": true,
       "verification_method": "Grepped for overlay/WindowManager.addView usage - none; confirmed the only consumer is the background startActivity at AppLaunchService.kt:107-108.",
-      "status": "open"
+      "status": "in_progress",
+      "fix_note": "Partial. The 'every resume' re-arming symptom was already fixed by C4 (checked once via LaunchedEffect(Unit) now). This commit fixes the dishonest rationale string: overlay_permission_rationale (renamed from this_app_needs_permission_to_display_over_other_apps) now says the permission is used to launch scheduled apps automatically, not to 'display over other apps' - the app never draws an overlay. NOT decided: whether the app should keep using SYSTEM_ALERT_WINDOW as a background-activity-launch exemption at all, versus switching to a tap-to-launch notification instead. That is a product decision (it changes the app's core launch behavior from automatic to user-initiated) that a fix-finding pass shouldn't make unilaterally - left open for the maintainer."
     },
     {
       "id": "H7",

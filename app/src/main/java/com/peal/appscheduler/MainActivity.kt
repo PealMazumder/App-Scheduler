@@ -96,7 +96,7 @@ class MainActivity : ComponentActivity() {
         CommonAlertDialog(
             modifier = modifier,
             title = stringResource(R.string.permission_required),
-            message = stringResource(R.string.this_app_needs_permission_to_display_over_other_apps),
+            message = stringResource(R.string.overlay_permission_rationale),
             confirmText = stringResource(R.string.grant_permission),
             showDismissButton = true,
             dismissOnBackPress = true,

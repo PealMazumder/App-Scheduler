@@ -8,7 +8,7 @@
     <string name="save">Save</string>
     <string name="ok">OK</string>
     <string name="permission_required">Permission Required</string>
-    <string name="this_app_needs_permission_to_display_over_other_apps">This app needs permission to display over other apps.</string>
+    <string name="overlay_permission_rationale">App Scheduler needs this permission to launch your scheduled apps automatically at the time you set, even while App Scheduler itself isn\'t open.</string>
     <string name="grant_permission">Grant Permission</string>
     <string name="this_app_needs_permission_to_schedule_exact_alarms">This app needs permission to schedule exact alarms.</string>
     <string name="channel_for_app_launch_notifications">Channel for app launch notifications</string>
