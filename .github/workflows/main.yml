@@ -3,6 +3,8 @@ name: Android Build and Notify Teams
 on:
   push:
     branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
   build:
@@ -22,20 +24,26 @@ jobs:
       - name: Grant execute permission to Gradle
         run: chmod +x ./gradlew
 
-      - name: Build APK
-        run: ./gradlew assembleDebug
+      - name: Build, lint, and test
+        run: ./gradlew assembleDebug lintDebug testDebugUnitTest
 
       - name: Upload APK artifact
+        if: github.event_name == 'push'
         uses: actions/upload-artifact@v4
         with:
           name: debug-apk
           path: app/build/outputs/apk/debug/app-debug.apk
 
       - name: Notify Microsoft Teams
+        if: github.event_name == 'push'
         env:
           TEAMS_WEBHOOK: ${{ secrets.TEAMS_WEBHOOK_URL }}
+          GH_REPOSITORY: ${{ github.repository }}
+          GH_REF_NAME: ${{ github.ref_name }}
+          GH_SHA: ${{ github.sha }}
+          GH_RUN_ID: ${{ github.run_id }}
         run: |
-          APK_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          APK_URL="https://github.com/${GH_REPOSITORY}/actions/runs/${GH_RUN_ID}"
           PAYLOAD=$(cat <<EOF
           {
             "type": "message",
@@ -56,15 +64,15 @@ jobs:
                       "facts": [
                         {
                           "title": "Repository",
-                          "value": "${{ github.repository }}"
+                          "value": "${GH_REPOSITORY}"
                         },
                         {
                           "title": "Branch",
-                          "value": "${{ github.ref_name }}"
+                          "value": "${GH_REF_NAME}"
                         },
                         {
                           "title": "Commit",
-                          "value": "${{ github.sha }}"
+                          "value": "${GH_SHA}"
                         }
                       ]
                     }
@@ -84,4 +92,4 @@ jobs:
           }
           EOF
           )
-          curl -H "Content-Type: application/json" -d "$PAYLOAD" $TEAMS_WEBHOOK
+          curl -H "Content-Type: application/json" -d "$PAYLOAD" "$TEAMS_WEBHOOK"

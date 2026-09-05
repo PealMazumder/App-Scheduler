@@ -539,7 +539,8 @@
       "effort": "M",
       "verified": true,
       "verification_method": "Read the workflow and the build file.",
-      "status": "open"
+      "status": "fixed",
+      "fix_note": "Added a pull_request trigger targeting main. Replaced the assembleDebug-only build step with './gradlew assembleDebug lintDebug testDebugUnitTest' so lint and unit tests now gate the workflow. Gated the APK upload and Teams notification steps to only run on push (not on PR builds, which only need verification). Fixed the GitHub Actions expression-injection risk: github.repository/ref_name/sha/run_id were interpolated directly into the shell heredoc by the Actions templating layer before the shell ever runs - an attacker-controlled ref_name (a branch/PR name containing shell metacharacters) could inject arbitrary script. Now passed through env: and referenced as quoted shell variables. Also quoted the final curl argument ($TEAMS_WEBHOOK -> \"$TEAMS_WEBHOOK\"). Did not add a lint {} block to build.gradle.kts (baseline/abortOnError policy) since the finding's cited locations are all in the workflow file - that is a separate, policy-level decision left open. Verified: YAML re-parsed successfully (ruby -ryaml), and the exact CI command (assembleDebug lintDebug testDebugUnitTest) passes locally, exit 0."
     },
     {
       "id": "LOW-A",
