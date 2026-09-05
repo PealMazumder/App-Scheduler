@@ -1,12 +1,25 @@
-# App Scheduler
+<div align="center">
+
+# 📱 App Scheduler
+
+**Launch any app on your Android device — automatically, at the moment you choose.**
+
+[![Android CI](https://github.com/PealMazumder/App-Scheduler/actions/workflows/main.yml/badge.svg)](https://github.com/PealMazumder/App-Scheduler/actions/workflows/main.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+![Kotlin](https://img.shields.io/badge/Kotlin-2.0-7F52FF?logo=kotlin&logoColor=white)
+![Jetpack Compose](https://img.shields.io/badge/Jetpack%20Compose-Material%203-4285F4?logo=jetpackcompose&logoColor=white)
+![API](https://img.shields.io/badge/API-24%2B-3DDC84?logo=android&logoColor=white)
+
+[Features](#-features) • [How it works](#-how-it-works) • [Architecture](#-architecture) • [Get started](#-get-started) • [Testing](#-testing) • [Demo](#-demo)
+
+</div>
+
+---
 
 App Scheduler is a native Android app that launches any installed app for you at a date and
-time you choose. Set it up once — "open Camera at 7:00 AM" or "launch Chrome every workday at
-9:00" — and the schedule survives app restarts, backgrounding, and even a device reboot. It
-keeps a running history of every schedule (scheduled, launched, failed, or cancelled) so you
-always know what happened.
-
-## Screenshots
+time you choose. Set it up once — "open Camera at 7:00 AM" or "launch Chrome at 9:00" — and
+the schedule survives app restarts, backgrounding, and even a device reboot. It keeps a running
+history of every schedule so you always know what happened.
 
 <p align="center">
   <img src="screenshots/img1.png" alt="Scheduled apps home screen" width="24%" />
@@ -14,25 +27,40 @@ always know what happened.
   <img src="screenshots/img3.png" alt="Create schedule screen" width="24%" />
 </p>
 
-## Features
+## ✨ Features
 
-- **Browse and search** every launchable app installed on the device.
-- **Schedule** an app to launch at a future date and time.
-- **Edit or cancel** a pending schedule at any time before it fires.
-- **Status tracking** for every schedule — `Scheduled`, `Launched`, `Failed`, or `Cancelled` —
-  shown with color-coded badges on the home screen.
-- **Conflict prevention** — you can't create two pending schedules for the exact same time.
-- **Survives reboot** — pending schedules are automatically re-armed after the device restarts.
-- **Doze-tolerant timing** — alarms use `setExactAndAllowWhileIdle`, so a schedule still fires on
-  time even if the device has gone idle.
-- **In-app feedback** via Material 3 snackbars, and system notifications while a launch is in
-  progress or if one fails.
-- Full **light and dark themes**, including Android 12+ dynamic color.
+| | |
+|---|---|
+| 🔍 **Browse & search** | Every launchable app installed on the device, filterable by name. |
+| ⏰ **Schedule** | Pick an app, a future date, and a time — App Scheduler takes it from there. |
+| ✏️ **Edit or cancel** | Change or cancel a pending schedule any time before it fires. |
+| 🏷️ **Status tracking** | Color-coded badges for `Scheduled`, `Launched`, `Failed`, `Cancelled`. |
+| 🚫 **Conflict prevention** | You can't create two pending schedules for the exact same time. |
+| 🔁 **Survives reboot** | Pending schedules are automatically re-armed after the device restarts. |
+| 💤 **Doze-tolerant** | Uses `setExactAndAllowWhileIdle`, so timing holds even if the device idles. |
+| 💬 **In-app feedback** | Material 3 snackbars, plus system notifications while a launch runs. |
+| 🌗 **Light & dark themes** | Including Android 12+ dynamic color. |
 
-## How it works
+## ⚙️ How it works
 
 App Scheduler's job is to reliably do one thing — start an app at a specific moment — even after
-the app that scheduled it has been closed. The flow:
+the app that scheduled it has been closed.
+
+```
+   You pick an app + time
+            │
+            ▼
+   Room DB write  +  AlarmManager.setExactAndAllowWhileIdle
+            │
+            ▼            (device may reboot in between — see step 4)
+   Alarm fires → AppSchedulerReceiver (BroadcastReceiver)
+            │
+            ▼
+   AppLaunchService (foreground service)
+     → PackageManager.getLaunchIntentForPackage
+     → launches the target app
+     → writes the result back to Room
+```
 
 1. **Pick an app and a time.** The scheduler screen writes the schedule to a local Room database
    and asks `AlarmManager` to fire a `setExactAndAllowWhileIdle` alarm for that instant.
@@ -47,7 +75,7 @@ the app that scheduled it has been closed. The flow:
 Everything after step 1 runs independently of the app's UI process, which is why the permissions
 below exist.
 
-## Architecture
+## 🏗️ Architecture
 
 The codebase follows a conventional Clean Architecture split, with each screen built as an
 MVI-style contract (`State` / `Intent` / `Effect`):
@@ -56,18 +84,14 @@ MVI-style contract (`State` / `Intent` / `Effect`):
 UI (Compose)  →  ViewModel  →  UseCase (domain)  →  Repository (domain interface)  →  Room / AlarmManager / PackageManager
 ```
 
-- **`ui/`** — Compose screens, navigation (Navigation 3, type-safe routes), shared components,
-  and theme. Each screen is split into a stateful `*Route` composable and a stateless, previewable
-  screen composable.
-- **`domain/`** — Models, repository interfaces, and use cases. This is where business rules live
-  (for example, rejecting a schedule that conflicts with an existing one, or one that's in the past).
-- **`data/`** — Room database and DAO, entity mappers, and the concrete repository implementations
-  the domain layer depends on.
-- **`di/`** — Hilt modules wiring the graph together.
-- **`receiver/`** and **`service/`** — the `BroadcastReceiver` and foreground services that make
-  scheduling work outside the app's UI lifecycle (see "How it works" above).
-- **`core/`** — small utilities shared across layers (a typed `Result`, lifecycle-aware event
-  collection for Compose).
+| Package | Responsibility |
+|---|---|
+| `ui/` | Compose screens, Navigation 3 (type-safe routes), shared components, theme. Each screen splits into a stateful `*Route` composable and a stateless, previewable screen composable. |
+| `domain/` | Models, repository interfaces, and use cases — where business rules live (rejecting a time-conflicting or past-dated schedule, for example). |
+| `data/` | Room database and DAO, entity mappers, and the concrete repository implementations the domain layer depends on. |
+| `di/` | Hilt modules wiring the graph together. |
+| `receiver/` · `service/` | The `BroadcastReceiver` and foreground services that make scheduling work outside the app's UI lifecycle. |
+| `core/` | Small utilities shared across layers — a typed `Result`, lifecycle-aware event collection for Compose. |
 
 ```text
 app/src/main/java/com/peal/appscheduler
@@ -80,7 +104,7 @@ app/src/main/java/com/peal/appscheduler
 └── ui/          # Compose screens, navigation, components, and theme
 ```
 
-## Tech stack
+## 🧰 Tech stack
 
 | | |
 |---|---|
@@ -94,7 +118,9 @@ app/src/main/java/com/peal/appscheduler
 | Scheduling | `AlarmManager` (exact, idle-tolerant) + foreground services |
 | Build | AGP 8.13.1, Gradle 8.14 |
 
-## Requirements
+## 🚀 Get started
+
+### Requirements
 
 - Android Studio (current stable release recommended)
 - JDK 17
@@ -103,7 +129,7 @@ app/src/main/java/com/peal/appscheduler
 
 The app targets Android 16 (API 36) and has a minimum SDK of API 24.
 
-## Get started
+### Build & run
 
 1. Clone the repository and open it in Android Studio.
 2. Allow Gradle to sync and install the required Android SDK platform if prompted.
@@ -126,7 +152,7 @@ For a release build, R8 shrinking and obfuscation are enabled
 (`./gradlew assembleRelease`); the output is unsigned, so a signing config
 must be supplied before distributing it.
 
-## Permissions and device behavior
+## 🔐 Permissions and device behavior
 
 App Scheduler asks for the access it needs as you use it, not all at once on first launch:
 
@@ -144,7 +170,7 @@ Android package manager exposes as launchable; device-specific battery optimizat
 background-activity restrictions may also affect whether a selected app can be brought to the
 foreground.
 
-## Testing
+## ✅ Testing
 
 Run local (JVM) unit tests:
 
@@ -163,16 +189,16 @@ time-conflict handling), date/time utilities, and ViewModels for the scheduler a
 screens, using fakes rather than mocks for repository dependencies. The instrumented suite covers
 Room DAO behavior.
 
-## Continuous integration
+### Continuous integration
 
-Every push and pull request to `main` runs through GitHub Actions
-(`.github/workflows/main.yml`): `assembleDebug`, `lintDebug`, and `testDebugUnitTest` all have to
-pass, and the resulting debug APK is uploaded as a build artifact on `main`.
+Every push and pull request to `main` runs through [GitHub Actions](.github/workflows/main.yml):
+`assembleDebug`, `lintDebug`, and `testDebugUnitTest` all have to pass, and the resulting debug
+APK is uploaded as a build artifact on `main`.
 
-## Demo
+## 🎬 Demo
 
 [Watch the demo video](https://drive.google.com/file/d/1DuLzio6waWi4rietamQvxkGViri4b7dE/view?usp=sharing)
 
-## License
+## 📄 License
 
 This project is licensed under the [MIT License](LICENSE).
