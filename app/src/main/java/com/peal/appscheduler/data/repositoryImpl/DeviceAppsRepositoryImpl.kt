@@ -34,7 +34,7 @@ class DeviceAppsRepositoryImpl @Inject constructor(
                 packageName = appInfo.packageName,
                 icon = appInfo.loadIcon(packageManager)
             )
-        }.sortedBy { it.name }
+        }.distinctBy { it.packageName }.sortedBy { it.name }
 
         emit(apps)
     }.flowOn(Dispatchers.IO)

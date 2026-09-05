@@ -5,6 +5,8 @@ import android.app.NotificationManager
 import android.app.Service
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.pm.ServiceInfo
+import android.os.Build
 import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
@@ -47,7 +49,15 @@ class AppLaunchService : Service() {
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .setOngoing(true)
 
-        startForeground(notificationId, notificationBuilder!!.build())
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            startForeground(
+                notificationId,
+                notificationBuilder!!.build(),
+                ServiceInfo.FOREGROUND_SERVICE_TYPE_SHORT_SERVICE
+            )
+        } else {
+            startForeground(notificationId, notificationBuilder!!.build())
+        }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -171,6 +181,8 @@ class AppLaunchService : Service() {
                     stopSelf()
                 }
             }
+        } else {
+            stopSelf()
         }
     }
 }

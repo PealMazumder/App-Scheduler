@@ -41,12 +41,14 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import java.time.Instant
+import java.time.ZoneId
 import com.peal.appscheduler.R
 import com.peal.appscheduler.core.presentation.util.ObserveAsEvents
 import com.peal.appscheduler.domain.enums.ScheduleStatus
 import com.peal.appscheduler.domain.mappers.toDeviceAppInfo
 import com.peal.appscheduler.domain.mappers.toScheduleAppInfoUi
-import com.peal.appscheduler.domain.utils.isAndroidTIRAMISUOrLater
+import android.os.Build
 import com.peal.appscheduler.ui.model.ScheduleAppInfoUi
 import com.peal.appscheduler.ui.screens.deviceApps.InstalledAppItem
 import com.peal.appscheduler.ui.shared.components.CommonAlertDialog
@@ -84,10 +86,6 @@ fun SchedulerScreenRoute(
         schedulerViewModel.updateAppInfo(appInfo)
     }
 
-    LaunchedEffect(appInfo) {
-        schedulerViewModel.updateAppInfo(appInfo)
-    }
-
     SchedulerScreen(
         modifier = modifier,
         state = schedulerScreenState,
@@ -116,7 +114,7 @@ fun SchedulerScreen(
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
-                if (isAndroidTIRAMISUOrLater() && !alarmManager.canScheduleExactAlarms()) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !alarmManager.canScheduleExactAlarms()) {
                     showPermissionDialog = true
                 }
             }
@@ -207,12 +205,24 @@ fun SchedulerScreen(
     }
 
     if (showDatePicker) {
+        val initialSelectedDateMillis = remember(state.scheduledAppInfo?.utcScheduleTime) {
+            state.scheduledAppInfo?.utcScheduleTime?.let { utcScheduleTime ->
+                Instant.ofEpochMilli(utcScheduleTime)
+                    .atZone(ZoneId.systemDefault())
+                    .toLocalDate()
+                    .atStartOfDay(ZoneId.of("UTC"))
+                    .toInstant()
+                    .toEpochMilli()
+            }
+        }
+
         DatePickerDialog(
             onDismissRequest = { showDatePicker = false },
             onDateSelected = {
                 onIntent.invoke(ScheduleContract.Intent.OnDateSelected(it))
                 showDatePicker = false
-            }
+            },
+            initialSelectedDateMillis = initialSelectedDateMillis
         )
     }
 

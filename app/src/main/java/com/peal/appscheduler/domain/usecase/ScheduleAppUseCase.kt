@@ -8,6 +8,7 @@ import com.peal.appscheduler.core.domain.util.Result
 import com.peal.appscheduler.core.domain.util.onError
 import com.peal.appscheduler.core.domain.util.onSuccess
 import javax.inject.Inject
+import kotlin.coroutines.cancellation.CancellationException
 
 
 /**
@@ -22,30 +23,38 @@ class ScheduleAppUseCase @Inject constructor(
         schedule: AppSchedule,
         isEdit: Boolean
     ): Result<Long, ScheduleError> {
-        return runCatching {
+        return try {
             val scheduleId: Long = schedule.id
 
             if (isEdit) {
-                alarmManagerRepository.updateSchedule(
+                val alarmResult = alarmManagerRepository.updateSchedule(
                     schedule.packageName,
                     schedule.scheduledTime,
                     scheduleId
                 )
+                if (alarmResult.isFailure) {
+                    return Result.Failure(ScheduleError.UNKNOWN_ERROR)
+                }
                 scheduleRepository.updateSchedule(schedule)
                 Result.Success(scheduleId)
             } else {
                 scheduleRepository.addSchedule(schedule)
                     .onSuccess { id ->
-                        alarmManagerRepository.scheduleApp(
+                        val alarmResult = alarmManagerRepository.scheduleApp(
                             schedule.packageName,
                             schedule.scheduledTime,
                             id
                         )
+                        if (alarmResult.isFailure) {
+                            return Result.Failure(ScheduleError.UNKNOWN_ERROR)
+                        }
                     }.onError {
-                        Result.Failure(it)
+                        return Result.Failure(it)
                     }
             }
-        }.getOrElse { _ ->
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
             Result.Failure(ScheduleError.UNKNOWN_ERROR)
         }
     }

@@ -4,14 +4,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.peal.appscheduler.domain.usecase.GetDeviceAppsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.onStart
-import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -42,7 +40,14 @@ class DeviceAppsViewModel @Inject constructor(
                 .onStart {
                     _deviceAppsScreenState.update { it.copy(isLoading = true) }
                 }
-                .catch { e -> e.printStackTrace() }
+                .catch { e ->
+                    _deviceAppsScreenState.update {
+                        it.copy(
+                            isLoading = false,
+                            errorMessage = e.message ?: "Failed to load apps"
+                        )
+                    }
+                }
                 .collect { deviceApps ->
                     _deviceAppsScreenState.update {
                         it.copy(

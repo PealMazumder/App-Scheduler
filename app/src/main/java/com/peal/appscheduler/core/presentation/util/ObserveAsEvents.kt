@@ -20,12 +20,13 @@ fun <T> ObserveAsEvents(
     events: Flow<T>,
     onEvent: (T) -> Unit
 ) {
-    val lifecycleOwner by rememberUpdatedState(LocalLifecycleOwner.current)
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val currentOnEvent by rememberUpdatedState(onEvent)
 
-    LaunchedEffect(lifecycleOwner) {
+    LaunchedEffect(lifecycleOwner, events) {
         lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
             events.collectLatest { event ->
-                onEvent(event)
+                currentOnEvent(event)
             }
         }
     }

@@ -4,6 +4,7 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Service
 import android.content.Intent
+import android.content.pm.ServiceInfo
 import android.os.Build
 import android.os.IBinder
 import android.util.Log
@@ -17,6 +18,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -58,7 +60,15 @@ class RescheduleService : Service() {
             .build()
 
         createNotificationChannel()
-        startForeground(notificationId, notification)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            startForeground(
+                notificationId,
+                notification,
+                ServiceInfo.FOREGROUND_SERVICE_TYPE_SYSTEM_EXEMPTED
+            )
+        } else {
+            startForeground(notificationId, notification)
+        }
     }
 
     private fun createNotificationChannel() {
@@ -80,26 +90,27 @@ class RescheduleService : Service() {
 
         serviceScope.launch {
             try {
-                scheduleRepository.getScheduledAppsToReschedule(ScheduleStatus.SCHEDULED.name)
-                    .collect { schedules ->
-                        if (schedules.isNotEmpty()) {
-                            schedules.forEach { schedule ->
-                                if (schedule.scheduledTime < currentTime) {
-                                    scheduleRepository.updateScheduleStatus(
-                                        schedule.id,
-                                        ScheduleStatus.FAILED.name
-                                    )
-                                } else {
-                                    alarmManagerRepository.scheduleApp(
-                                        schedule.packageName,
-                                        schedule.scheduledTime,
-                                        schedule.id
-                                    )
-                                }
-                                Log.d("RescheduleService", "Rescheduled app launch for package: ${schedule.packageName} at ${schedule.scheduledTime}")
-                            }
-                        }
+                // Use .first() for a one-shot read so stopSelf() is reachable.
+                // .collect {} on a Room observable Flow never completes.
+                val schedules = scheduleRepository
+                    .getScheduledAppsToReschedule(ScheduleStatus.SCHEDULED.name)
+                    .first()
+
+                schedules.forEach { schedule ->
+                    if (schedule.scheduledTime < currentTime) {
+                        scheduleRepository.updateScheduleStatus(
+                            schedule.id,
+                            ScheduleStatus.FAILED.name
+                        )
+                    } else {
+                        alarmManagerRepository.scheduleApp(
+                            schedule.packageName,
+                            schedule.scheduledTime,
+                            schedule.id
+                        )
                     }
+                    Log.d("RescheduleService", "Rescheduled app launch for package: ${schedule.packageName} at ${schedule.scheduledTime}")
+                }
             } catch (e: Exception) {
                 Log.e("RescheduleService", "Error during rescheduling: ${e.message}")
             } finally {
@@ -117,3 +128,4 @@ class RescheduleService : Service() {
         super.onDestroy()
     }
 }
+

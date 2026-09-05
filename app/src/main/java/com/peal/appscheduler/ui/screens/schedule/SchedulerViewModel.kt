@@ -1,6 +1,5 @@
 package com.peal.appscheduler.ui.screens.schedule
 
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.peal.appscheduler.core.domain.util.ScheduleError
@@ -17,13 +16,10 @@ import com.peal.appscheduler.domain.utils.toLocalDate
 import com.peal.appscheduler.domain.utils.toLocalTime
 import com.peal.appscheduler.ui.model.ScheduleAppInfoUi
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -40,7 +36,6 @@ import javax.inject.Inject
 class SchedulerViewModel @Inject constructor(
     private val scheduleAppUseCase: ScheduleAppUseCase,
     private val cancelScheduledAppUseCase: CancelScheduledAppUseCase,
-    private val handle: SavedStateHandle,
 ) : ViewModel() {
 
     private val _schedulerScreenState = MutableStateFlow(ScheduleContract.State())
@@ -103,7 +98,6 @@ class SchedulerViewModel @Inject constructor(
                             appInfo.id,
                             scheduleTime
                         ).let { result ->
-                            delay(500)
                             result.onSuccess {
                                 _schedulerScreenState.update { it.copy(isLoading = false) }
                                 viewModelScope.launch {
@@ -158,7 +152,6 @@ class SchedulerViewModel @Inject constructor(
                 }
 
                 viewModelScope.launch {
-                    delay(500)
                     scheduleAppUseCase.invoke(
                         AppSchedule(
                             id = appInfo.id,

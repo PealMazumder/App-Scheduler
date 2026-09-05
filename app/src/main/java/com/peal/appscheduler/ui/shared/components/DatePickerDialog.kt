@@ -3,6 +3,7 @@ package com.peal.appscheduler.ui.shared.components
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
@@ -21,9 +22,24 @@ import java.time.ZoneId
 @Composable
 fun DatePickerDialog(
     onDismissRequest: () -> Unit,
-    onDateSelected: (LocalDate) -> Unit
+    onDateSelected: (LocalDate) -> Unit,
+    initialSelectedDateMillis: Long? = null,
 ) {
-    val datePickerState = rememberDatePickerState()
+    val todayMillis = System.currentTimeMillis()
+
+    val datePickerState = rememberDatePickerState(
+        initialSelectedDateMillis = initialSelectedDateMillis,
+        selectableDates = object : SelectableDates {
+            override fun isSelectableDate(utcTimeMillis: Long): Boolean {
+                // Allow today and future dates
+                val selectedDay = Instant.ofEpochMilli(utcTimeMillis)
+                    .atZone(ZoneId.of("UTC")).toLocalDate()
+                val today = Instant.ofEpochMilli(todayMillis)
+                    .atZone(ZoneId.systemDefault()).toLocalDate()
+                return !selectedDay.isBefore(today)
+            }
+        }
+    )
 
     DatePickerDialog(
         onDismissRequest = onDismissRequest,

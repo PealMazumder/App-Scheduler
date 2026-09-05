@@ -42,10 +42,11 @@
         </receiver>
 
         <service android:name=".service.AppLaunchService"
-            android:foregroundServiceType="systemExempted"
+            android:foregroundServiceType="shortService"
             android:exported="false"/>
 
         <service android:name=".service.RescheduleService"
+            android:foregroundServiceType="systemExempted"
             android:exported="false" />
 
     </application>

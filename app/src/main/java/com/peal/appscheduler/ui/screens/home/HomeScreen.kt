@@ -10,7 +10,6 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -18,6 +17,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.peal.appscheduler.ui.shared.navigation.Navigator
 import com.peal.appscheduler.ui.shared.navigation.navigateToAppScheduler
 import com.peal.appscheduler.ui.shared.navigation.navigateToDeviceAppsList
+import com.peal.appscheduler.core.presentation.util.ObserveAsEvents
 
 
 /**
@@ -33,16 +33,14 @@ fun HomeScreenRoute(
 ) {
     val homeScreenState by homeViewModel.homeState.collectAsStateWithLifecycle()
 
-    LaunchedEffect(Unit) {
-        homeViewModel.homeEffect.collect { effect ->
-            when (effect) {
-                is HomeContract.Effect.NavigateToInstalledApps -> {
-                    navigator.navigateToDeviceAppsList()
-                }
+    ObserveAsEvents(events = homeViewModel.homeEffect) { effect ->
+        when (effect) {
+            is HomeContract.Effect.NavigateToInstalledApps -> {
+                navigator.navigateToDeviceAppsList()
+            }
 
-                is HomeContract.Effect.NavigateToScheduledApps -> {
-                    navigator.navigateToAppScheduler(effect.appInfo)
-                }
+            is HomeContract.Effect.NavigateToScheduledApps -> {
+                navigator.navigateToAppScheduler(effect.appInfo)
             }
         }
     }

@@ -6,6 +6,7 @@ import android.content.Intent
 import com.peal.appscheduler.domain.utils.isAndroidOOrLater
 import com.peal.appscheduler.service.AppLaunchService
 import com.peal.appscheduler.service.RescheduleService
+import com.peal.appscheduler.utils.AppConstant.ACTION_SCHEDULE_APP
 import com.peal.appscheduler.utils.AppConstant.EXTRA_PACKAGE_NAME
 import com.peal.appscheduler.utils.AppConstant.EXTRA_SCHEDULE_ID
 
@@ -25,7 +26,13 @@ class AppSchedulerReceiver : BroadcastReceiver() {
             }
 
             return
-        } else if (intent?.action == "com.peal.ACTION_SCHEDULE_APP") {
+        } else if (intent?.action == ACTION_SCHEDULE_APP) {
+            // Validate this broadcast came from our own AlarmManager PendingIntent,
+            // not from an external app spoofing the action.
+            if (context != null && intent.`package` != null && intent.`package` != context.packageName) {
+                return
+            }
+
             val packageName = intent.getStringExtra(EXTRA_PACKAGE_NAME) ?: return
             val scheduleId = intent.getLongExtra(EXTRA_SCHEDULE_ID, -1)
 

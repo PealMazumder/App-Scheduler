@@ -9,6 +9,7 @@ object AppConstant {
     const val EXTRA_PACKAGE_NAME = "PACKAGE_NAME"
     const val EXTRA_SCHEDULE_ID = "SCHEDULE_ID"
     const val APP_SCHEDULER_CHANNEL = "APP_SCHEDULER_CHANNEL"
+    const val ACTION_SCHEDULE_APP = "com.peal.ACTION_SCHEDULE_APP"
 }
 
 object DateTimePatterns {

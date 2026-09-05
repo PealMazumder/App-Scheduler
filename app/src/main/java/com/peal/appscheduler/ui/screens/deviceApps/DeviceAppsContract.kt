@@ -9,6 +9,7 @@ object DeviceAppsContract {
     data class State(
         val isLoading: Boolean = false,
         val deviceApps: List<DeviceAppInfo> = emptyList(),
+        val errorMessage: String? = null,
     )
 
     sealed class Intent {

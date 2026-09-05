@@ -26,9 +26,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.DefaultLifecycleObserver
-import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.peal.appscheduler.domain.utils.isAndroidTIRAMISUOrLater
 import com.peal.appscheduler.ui.shared.navigation.AppSchedulerNavHost
 import com.peal.appscheduler.ui.shared.components.CommonAlertDialog
@@ -46,16 +43,16 @@ class MainActivity : ComponentActivity() {
         setContent {
             AppSchedulerTheme {
                 val context = LocalContext.current
-                val lifecycleOwner = LocalLifecycleOwner.current
 
                 var showDialog by remember { mutableStateOf(false) }
+                var hasAskedThisSession by remember { mutableStateOf(false) }
 
-                LaunchedEffect(lifecycleOwner) {
-                    lifecycleOwner.lifecycle.addObserver(object : DefaultLifecycleObserver {
-                        override fun onResume(owner: LifecycleOwner) {
-                            showDialog = !Settings.canDrawOverlays(context)
-                        }
-                    })
+                // Check overlay permission once on launch, not on every resume
+                LaunchedEffect(Unit) {
+                    if (!Settings.canDrawOverlays(context)) {
+                        showDialog = true
+                        hasAskedThisSession = true
+                    }
                 }
 
                 if (showDialog) {
@@ -100,6 +97,8 @@ class MainActivity : ComponentActivity() {
             title = stringResource(R.string.permission_required),
             message = stringResource(R.string.this_app_needs_permission_to_display_over_other_apps),
             confirmText = stringResource(R.string.grant_permission),
+            showDismissButton = true,
+            dismissOnBackPress = true,
             onConfirm = {
                 overlayPermissionLauncher.launch(
                     Intent(

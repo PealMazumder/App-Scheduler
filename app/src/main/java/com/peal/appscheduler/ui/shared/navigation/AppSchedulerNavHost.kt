@@ -3,12 +3,6 @@ package com.peal.appscheduler.ui.shared.navigation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
-import androidx.navigation.toRoute
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
@@ -17,7 +11,6 @@ import androidx.navigation3.ui.NavDisplay
 import com.peal.appscheduler.ui.screens.deviceApps.DeviceAppsListScreenRoute
 import com.peal.appscheduler.ui.screens.home.HomeScreenRoute
 import com.peal.appscheduler.ui.screens.schedule.SchedulerScreenRoute
-import com.peal.appscheduler.ui.shared.viewModel.SharedDeviceAppViewModel
 
 
 /**
